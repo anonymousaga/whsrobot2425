@@ -12,7 +12,6 @@ import _thread
 from rv import * #robot vars
 
 
-
 # DO NOT EDIT THESE DURING COMPETITION
 # Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
 startTimeOffset = 0 # in seconds
