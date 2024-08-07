@@ -1,7 +1,7 @@
 # DOWEL OFFSET 7CM
 # IF INTIAL SPEED IS OVER 60, TURN UP THE ACCEL TO MAX
 
-targetTime = 55
+targetTime = 55.1
 
 # ACCEL VARS
 saccel = 3.8 #5.5
