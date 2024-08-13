@@ -425,11 +425,11 @@ try:
 
     for i in range(1, 2000):
         step_pin.value(1)
-        sleep_us(1)
+        sleep_us(10)
         step_pin.value(0)
-        sleep_us(1)
+        sleep_us(10)
     printlcd("Motors Enabled")
-    sleep(0.05)
+    sleep(0.17)
 
     while True:
         if button.value() == 0:
