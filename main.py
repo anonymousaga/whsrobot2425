@@ -24,7 +24,6 @@ backwardsMaxSpeed = maxstraightSpeed*0.6
 rturnsteps = 17.221
 lturnsteps = rturnsteps
 currentmA = 1250
-silent = True
 tmc_uart_en = False
 spreadCycleEn = True
 ending_led_period = .5 # how long before finish to turn off led at end
