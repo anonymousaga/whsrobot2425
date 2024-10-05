@@ -4,6 +4,7 @@ from machine import freq
 freq(250000000)
 from machine import Pin, Timer, I2C, reset, freq, PWM, ADC
 import gc
+import os
 import ssd1306
 from time import sleep, ticks_ms, sleep_us, time
 from math import sqrt
@@ -92,7 +93,7 @@ if True: # define all functions
         presetDelay = calcS(straightSpeed)
         gc.collect()
         for i in range(1, iAtEndinitial):
-            delayi = round(saccel_literal/sqrt(i+3))-2
+            delayi = round(saccel_literal/sqrt(i+2))-2
             if delayi < presetDelay:
                 iAtEnd = i
                 break
@@ -169,7 +170,7 @@ if True: # define all functions
         presetDelay = calcS(speedLimit)
         gc.collect()
         for i in range(1, iAtEndinitial):
-            delayi = round(taccel_literal/sqrt(i+1))-2
+            delayi = round(taccel_literal/sqrt(i+2))-2
             if delayi < presetDelay:
                 iAtEnd = i
                 break
@@ -298,6 +299,26 @@ if True: # define all functions
             #tmc.setMicrosteppingResolution(16)
             #tmc.setInternalRSense(False)
 
+    def lcd_voltage():
+        voltage = battNew.read_u16()/65536*3.29*6.1-0.05
+        if voltage <= 0:
+            voltage = 0
+        voltagestr = f'{voltage:.2f} V' 
+        if voltage < 6.1:
+            undervolt=True
+        else:
+            undervolt=False
+        try:
+            display.fill_rect(0, 0,130, 15, 0) # black out wait message
+            display.text(voltagestr, 0, 0, 1)
+            if undervolt == True:
+                display.text('LOW!!!!', 70, 0, 1)
+            display.show()
+        except:
+            pass
+        return voltage, undervolt
+
+
 
 
 #_thread.start_new_thread(th_func, ())
@@ -349,15 +370,16 @@ try:
     display = ssd1306.SSD1306_I2C(128, 64, i2c)
 except:
     print("I2C OLED NOT WORKING!")
-command_number = 0
-voltage = battNew.read_u16()/65536*3.29*6.1-0.05  # 3.33
-if voltage <= 0:
-    voltage = 0
-printlcd(f'{voltage:.2f} V')
 
-commands, error = compileCommands(commands)
-if error != False:
-    print("Error: ", error)
+command_number = 0
+
+
+
+
+
+commands, errorcommands = compileCommands(commands)
+if errorcommands != False:
+    print("Error: ", errorcommands)
     try:
         display.text('COMMANDS ERROR', 0, 15, 1)
         display.text('PROGRAM EXITED', 0, 30, 1)
@@ -365,6 +387,7 @@ if error != False:
     except:
         pass
     exit()
+del errorcommands
 
       
 
@@ -374,6 +397,8 @@ if error != False:
 try:
     startTime = ticks_ms() - 250
     AdjustSpeedTimeRealTime()
+    voltage, undervoltage = lcd_voltage()
+    print(str(voltage) + ' V')
     try:
         display.text(f'Speed: {straightSpeed:.2f}', 0, 15, 1)
         display.text("WAIT 0.5 SEC", 0, 30, 1)
@@ -382,14 +407,9 @@ try:
     except:
         pass
 
-    if voltage < 6.1:
-        buzzer.duty_u16(1000)
-        try:
-            display.text('LOW!!!!', 70, 0, 1)
-            display.show()
-        except:
-            pass
+    if undervoltage == True:
         print('LOW VOLTAGE!')
+        buzzer.duty_u16(1000)
         for i in range(3):
             led.on()
             buzzer.freq(500)
@@ -398,6 +418,8 @@ try:
             buzzer.freq(1000)
             sleep(0.15)
         buzzer.duty_u16(0)
+    del undervoltage
+    del voltage
 
     if tmc_uart_en == True:
         from TMC_2209_StepperDriver import *
@@ -408,17 +430,23 @@ try:
     gc.collect()
 
     try:
-        display.text("#############", 0, 30, 1)
+        display.fill_rect(0, 30,130, 15, 0) # black out wait message
         display.show()
     except:
         pass
-
+    countled = 0
     while True:
+        if countled == 12500:
+            lcd_voltage()
+            countled = 0
+        sleep_us(2)
         if button.value() == 0:
-            sleep(0.02)
+            sleep_us(25) # debounce 25ms
             if button.value() == 0:
                 break
-
+        countled += 1
+    del countled
+    
     led.on()
     enPin1.low()
 
@@ -427,16 +455,19 @@ try:
         sleep_us(10)
         step_pin.value(0)
         sleep_us(10)
-    printlcd("Motors Enabled")
     sleep(0.17)
+    printlcd("Motors Enabled")
 
     while True:
+        sleep_us(2)
         if button.value() == 0:
-            sleep(0.02)
+            sleep_us(25) # debounce 25ms
             if button.value() == 0:
                 break
+    
     while button.value() == 0:
-        pass
+        sleep_us(2)   # wait until button is fully released
+
     # motor time offset, in nanoseconds
     startTime = ticks_ms() + startTimeOffset*(1000)
     printlcd("Starting Course")
@@ -445,9 +476,7 @@ try:
     buzzer.duty_u16(1000)
     sleep(0.21)
     buzzer.duty_u16(0)
-
     run_array(commands)
-
     print("")
     printlcd(
         f'Time: {(ticks_ms() - (startTime-startTimeOffset*1000))/1000:.2f}s')
