@@ -75,11 +75,11 @@ if True: # define all functions
 
         if cm < 0:
             dirfront(dirPin1)
-            dirfront(dirPin2)
+            dirback(dirPin2)
             cm *= -1
         else:
             dirback(dirPin1)
-            dirback(dirPin2)
+            dirfront(dirPin2)
         steps = round(cm*straightsteps)
         if command_number == 0:
             saccel_literal = saccel_initial
@@ -152,13 +152,13 @@ if True: # define all functions
         printlcd("TURN")
 
         if degreeval < 0:
-            dirback(dirPin2)
             dirfront(dirPin1)
+            dirfront(dirPin2)
             turn_steps = lturnsteps
             degreeval *= -1
         else:
-            dirfront(dirPin2)
             dirback(dirPin1)
+            dirback(dirPin2)
             turn_steps = rturnsteps
         steps = round(degreeval*turn_steps)
 
@@ -318,9 +318,9 @@ turnTime = 0.0035
 taccel_delay = 0.25
 
 led = Pin(25, Pin.OUT)
-step_pin = Pin(11, Pin.OUT)
-dirPin1 = Pin(14, Pin.OUT)
-dirPin2 = Pin(13, Pin.OUT)
+step_pin = Pin(14, Pin.OUT)
+dirPin1 = Pin(11, Pin.OUT)
+dirPin2 = Pin(12, Pin.OUT)
 Pin(23, Pin.OUT).high()  # Switch PSU to PWM from PSM for better ADC
 #saccel_delay = round(0.00002909/((saccel)**3) + 0.041, 3)
 #if saccel_delay > 0.8:
@@ -338,12 +338,12 @@ buzzer = PWM(buzzPin)
 buzzer.freq(1000)
 buzzer.duty_u16(0)
 
-enPin1 = Pin(15, Pin.OUT)
+enPin1 = Pin(10, Pin.OUT)
 enPin1.high()
 dirfront(dirPin1)
 dirfront(dirPin2)
 led.low()
-button = Pin(12, Pin.IN, Pin.PULL_UP)
+button = Pin(5, Pin.IN, Pin.PULL_UP)
 i2c = I2C(1, freq=400000, scl=Pin(3), sda=Pin(2))
 try:
     display = ssd1306.SSD1306_I2C(128, 64, i2c)
