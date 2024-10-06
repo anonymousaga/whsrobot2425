@@ -1,7 +1,7 @@
 # TO BE RUN ON A RASPBERRY PI PICO
 # UPLOAD FILE WITH AMPY OR RSHELL
 from machine import freq
-freq(250000000)
+freq(300000000)
 from machine import Pin, Timer, I2C, reset, freq, PWM, ADC
 import gc
 import os
@@ -62,10 +62,6 @@ if True: # define all functions
         global straightSpeed
         global runCurrent
         global speed_steps_ratio
-        AdjustSpeedTimeRealTime()  # timing function
-        if cm < 0 and straightSpeed > backwardsMaxSpeed:
-            straightSpeed = backwardsMaxSpeed
-        print('STRAIGHT')
         try:
             display.fill(0)
             display.text('STRAIGHT', 0, 0, 1)
@@ -82,15 +78,13 @@ if True: # define all functions
             dirback(dirPin1)
             dirfront(dirPin2)
         steps = round(cm*straightsteps)
-        if command_number == 0:
-            saccel_literal = saccel_initial
-        else:
-            saccel_literal = saccel
+        saccel_literal = saccel
         saccel_literal = 25000/saccel_literal
         delay = []
         iAtEnd = int(steps*.496)
         iAtEndinitial = iAtEnd
         presetDelay = calcS(straightSpeed)
+        print(presetDelay)
         gc.collect()
         for i in range(1, iAtEndinitial):
             delayi = round(saccel_literal/sqrt(i+2))-2
@@ -98,20 +92,19 @@ if True: # define all functions
                 iAtEnd = i
                 break
             delay.append(delayi)
-        print(str(steps)+" steps")
+        
         try:
             presetDelay = delay[iAtEnd-2]
         except IndexError:
             print("IndexError At presetdelay calc for straight")
             print("iAtEnd ",iAtEnd)
             print("len(delay) ",len(delay))
-        try:
-            display.text('AccelSteps%: ' + str(int((100*iAtEnd)/(steps/2))), 0, 45, 1)
-            display.show()
-        except:
-            pass
-        if ending==True:
-            _thread.start_new_thread(ending_led, (straightETA(cm, straightSpeed, saccel)-ending_led_period, ))
+
+        #print('AccelSteps: ' + str(int((100*iAtEnd)/(steps/2))), 0, 45, 1)
+        #display.show()
+
+
+           
         range2=range(iAtEnd-1, 2+steps-iAtEnd)
         range3=range((-1*iAtEnd)+2, 0)
         starttime2=ticks_ms()
@@ -128,8 +121,7 @@ if True: # define all functions
             step_pin.value(0)
             sleep_us(delay[i*-1])
         endtime2=ticks_ms()
-        print(f"Elapsed Time: { (endtime2 - starttime2) / 1000 } seconds")
-        command_number += 1  # Shift position to next command
+        print(str(cm) + f",{ (endtime2 - starttime2) / 1000 },"+ str(saccel) + ',' + str(straightSpeed)+','+str(int((100*iAtEnd)/(steps/2))))
 
 
     def run_array(arr):
@@ -165,7 +157,7 @@ if True: # define all functions
 
         taccel_literal = 25000/taccel
         delay = []
-        iAtEnd = int(steps*.496)
+        iAtEnd = int(steps*.411)
         iAtEndinitial = iAtEnd
         presetDelay = calcS(speedLimit)
         gc.collect()
@@ -322,16 +314,14 @@ if True: # define all functions
 
 
 #_thread.start_new_thread(th_func, ())
-print("")
-print("")
-print("")
 
-#saccel_delay = round(0.00002909/((saccel)**3) + 0.041, 3)
-#if saccel_delay > 0.8:
-#    saccel_delay = 0.612
-#elif saccel_delay < 0.1:
-#    saccel_delay = 0.198
-saccel_delay = 0.43
+
+
+saccel_delay = round(0.00002909/((saccel)**3) + 0.041, 3)
+if saccel_delay > 0.8:
+    saccel_delay = 0.612
+elif saccel_delay < 0.1:
+    saccel_delay = 0.198
 
 command0,command1, command2, command3, command4, command5, command6, command7, command8, command9 = [0,1,2,3,4,5,6,7,8,9]
 del command0,command1, command2, command3, command4, command5, command6, command7, command8, command9
@@ -399,7 +389,6 @@ try:
     startTime = ticks_ms() - 250
     AdjustSpeedTimeRealTime()
     voltage, undervoltage = lcd_voltage()
-    print(str(voltage) + ' V')
     try:
         display.text(f'Speed: {straightSpeed:.2f}', 0, 15, 1)
         display.text("WAIT 0.5 SEC", 0, 30, 1)
@@ -408,19 +397,6 @@ try:
     except:
         pass
 
-    if undervoltage == True:
-        print('LOW VOLTAGE!')
-        buzzer.duty_u16(1000)
-        for i in range(3):
-            led.on()
-            buzzer.freq(500)
-            sleep(0.15)
-            led.off()
-            buzzer.freq(1000)
-            sleep(0.15)
-        buzzer.duty_u16(0)
-    del undervoltage
-    del voltage
 
     if tmc_uart_en == True:
         from TMC_2209_StepperDriver import *
@@ -435,52 +411,35 @@ try:
         display.show()
     except:
         pass
-    countled = 0
-    while True:
-        if countled == 12500:
-            lcd_voltage()
-            countled = 0
-        sleep_us(2)
-        if button.value() == 0:
-            sleep_us(25) # debounce 25ms
-            if button.value() == 0:
-                break
-        countled += 1
-    del countled
-    
+
     led.on()
     enPin1.low()
 
-    for i in range(1, 2000):
-        step_pin.value(1)
-        sleep_us(10)
-        step_pin.value(0)
-        sleep_us(10)
-    sleep(0.17)
-    printlcd("Motors Enabled")
-
-    while True:
-        sleep_us(2)
-        if button.value() == 0:
-            sleep_us(25) # debounce 25ms
-            if button.value() == 0:
-                break
-    
-    while button.value() == 0:
-        sleep_us(2)   # wait until button is fully released
-
     # motor time offset, in nanoseconds
     startTime = ticks_ms() + startTimeOffset*(1000)
-    printlcd("Starting Course")
 
     # BUZZ (for fun)
     buzzer.duty_u16(1000)
     sleep(0.21)
     buzzer.duty_u16(0)
-    run_array(commands)
-    print("")
-    printlcd(
-        f'Time: {(ticks_ms() - (startTime-startTimeOffset*1000))/1000:.2f}s')
+    
+
+ # PUT STUFF HERE ################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+    #cmlist=[1,2,3,4,5,7,9,11,15,20,35.4,40,50]#,140]
+    cmlist=[5,25,50,100]
+    speedlistfast=[10,20,35,50,75,100,140] #1,2,3,5,7, REDO 11
+    cm,saccel,straightSpeed=50,3.8,68
+    s(cm)
+    #for k in speedlistfast:
+    #    straightSpeed = k
+    #    for i in [3.9,4.6, 5.35]:
+    #        saccel = i
+    #        for j in cmlist:
+    #            s(j)
+
+    
+ 
+    
     # BUZZ (for fun)
     buzzer.freq(750)
     buzzer.duty_u16(1000)
@@ -495,14 +454,11 @@ try:
     enPin1.high()
     sleep(0.4)
     buzzer.duty_u16(0)
-    sleep(0.2)
-    if silent == False:
-        import song  # sing a song cuz why not
+
 except KeyboardInterrupt:
     led.off()
     enPin1.high()
     buzzer.duty_u16(0)
-    print("Program Exited")
     display.fill(0)
     display.text("Program Exited", 0, 0, 1)
     display.text("Press RESET", 0, 15, 1)
