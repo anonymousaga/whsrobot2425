@@ -93,7 +93,7 @@ if True: # define all functions
         presetDelay = calcS(straightSpeed)
         gc.collect()
         for i in range(1, iAtEndinitial):
-            delayi = round(saccel_literal/sqrt(i+2))-2
+            delayi = round(saccel_literal/sqrt(i+3))-2
             if delayi < presetDelay:
                 iAtEnd = i
                 break
@@ -170,7 +170,7 @@ if True: # define all functions
         presetDelay = calcS(speedLimit)
         gc.collect()
         for i in range(1, iAtEndinitial):
-            delayi = round(taccel_literal/sqrt(i+2))-2
+            delayi = round(taccel_literal/sqrt(i+1))-2
             if delayi < presetDelay:
                 iAtEnd = i
                 break
