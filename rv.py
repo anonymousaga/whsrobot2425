@@ -2,47 +2,55 @@
 # IF INTIAL SPEED IS OVER 60, TURN UP THE ACCEL TO MAX
 
 silent = False
-targetTime = 70.581
+targetTime = 62.7
 
 # ACCEL VARS
 # SPEED VARS in cm/s
-saccel = 3.7 #3.7 #5.45
-turnSpeedDefault = 90 #90 #120
+saccel = 4.17 #3.7 #5.45
+turnSpeedDefault = 95 #90 #120
 maxstraightSpeed = 145 #100 #145
 
 
 commands="""
-s122
-u
-s90
-r
-s75
-rd
-sd25
-r
-sd50
+s82
 l
-sd50
-r
-sd25
-t45
-s65
+s40
 u
-s190
-u
+s40
+l
+s100
+l
+s50
+l
 s50
 r
-s125
-rd
-sd30
+s50
+l
+s50
+r
+s50
+l
+s40
 u
-sd30
-t-45
-s125
+s40
+r
+s50
 l
-s51.8
+s100
+r
+s150
+r
+s140
+u
+s140
 l
-s49.7
+s150
+l
+s100
+r
+s50.7
+r
+s37
 """
 
 commands4 = """
