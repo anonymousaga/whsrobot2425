@@ -2,6 +2,7 @@
 # IF INTIAL SPEED IS OVER 60, TURN UP THE ACCEL TO MAX
 
 silent = False
+
 targetTime = 62.7
 
 # ACCEL VARS
