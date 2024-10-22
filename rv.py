@@ -3,7 +3,7 @@
 
 silent = False
 
-targetTime = 62.7
+targetTime = 62.66
 
 # ACCEL VARS
 # SPEED VARS in cm/s
