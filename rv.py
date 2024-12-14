@@ -3,55 +3,67 @@
 
 silent = False
 
-targetTime = 55.6
+targetTime = 72.69
 
 # ACCEL VARS
 # SPEED VARS in cm/s
-saccel = 4.2 #3.7 #5.45
+saccel = 4.35 #3.7 #5.45
 turnSpeedDefault = 95 #90 #120
 maxstraightSpeed = 145 #100 #145
 
 
 commands="""
-s132
+s32
+r
+s100
 l
+s125
+ld
+sd35
+u
+sd35
+rd
 s50
+rd
+sd25
+r
+sd50
+ld
+s75
+r
+s50
+r
+s40
+u
+s90
 l
 s40
 u
 s40
 r
-s50
-l
-s50
+s25
+rd
+sd50
+ld
+s75
 r
-s40
+s75
+rd
+sd25
+r
+sd30
 u
-s40
+sd30
 l
-s50
+sd25
+ld
+s75
 l
-s50
+s100
 r
 s50
 l
-s50
-l
-s140
-u
-s180
-u
-s40
-l
-s50
-r
-s50
-l
-s50
-r
-s86
-l
-s51.1
+s44
 """
 
 commands4 = """
@@ -69,7 +81,7 @@ r
 r
 """
 
-commands5= """
+commands4= """
 l
 l
 l
@@ -83,4 +95,3 @@ l
 l
 l
 """
-

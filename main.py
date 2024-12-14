@@ -25,7 +25,7 @@ if taccel < 3.8:
 minstraightSpeed = 3
 # TURN CONSTANTS
 backwardsMaxSpeed = maxstraightSpeed*0.6
-rturnsteps = 17.221
+rturnsteps = 17.165
 lturnsteps = rturnsteps
 currentmA = 1250
 tmc_uart_en = False
@@ -627,3 +627,6 @@ except KeyboardInterrupt:
     display.text("Press RESET", 0, 15, 1)
     display.show()
 # reset()
+# I dont know why he puit the song in but remember, A bird does not sing because it has somthing to say, it sings becuase it has a song. 
+# Your critique, Izyan Syed
+#play this video, https://www.youtube.com/watch?v=dQw4w9WgXcQ
