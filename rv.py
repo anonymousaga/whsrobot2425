@@ -7,7 +7,7 @@ targetTime = 60
 
 # ACCEL VARS
 # SPEED VARS in cm/s
-saccel = 4.1 #3.7 #5.45
+saccel = 4.2 #4.15 #5.45
 turnSpeedDefault = 95 #90 #120
 maxstraightSpeed = 145 #100 #145
 

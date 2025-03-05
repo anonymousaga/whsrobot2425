@@ -25,7 +25,7 @@ if taccel < 3.8:
 minstraightSpeed = 3
 # TURN CONSTANTS
 backwardsMaxSpeed = maxstraightSpeed*0.6
-rturnsteps = 17.165
+rturnsteps = 17.295
 lturnsteps = rturnsteps
 currentmA = 1250
 tmc_uart_en = False
