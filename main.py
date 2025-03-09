@@ -26,9 +26,9 @@ minstraightSpeed = 3
 # TURN CONSTANTS
 backwardsMaxSpeed = maxstraightSpeed*0.6
 lturnsteps = 17.241
-rturnsteps = lturnsteps-0.058
-currentmA = 1250
-tmc_uart_en = False
+rturnsteps = lturnsteps# - 0.058
+currentmA = 850 # vref * 0.707 gets you current (RMS)
+tmc_uart_en = True
 spreadCycleEn = True
 ending_led_period = .5 # how long before finish to turn off led at end
 
@@ -293,11 +293,11 @@ if True: # define all functions
 
     def tmcfuncs():
         if tmc_uart_en == True:
-            tmc.setCurrent(currentmA, hold_current_multiplier = 1, hold_current_delay = 10, Vref = 1.325)
+            #tmc.setCurrent(currentmA, hold_current_multiplier = 1, hold_current_delay = 10, Vref = 1.325)
             tmc.setSpreadCycle(spreadCycleEn)
             #tmc.setDirection_reg(True)
             #tmc.setVSense(False)
-            #tmc.setIScaleAnalog(True) #default
+            #tmc.setIScaleAnalog(False) #default
             #tmc.setInterpolation(True)
             #tmc.setMicrosteppingResolution(16)
             #tmc.setInternalRSense(False)
