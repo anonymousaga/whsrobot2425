@@ -26,7 +26,7 @@ minstraightSpeed = 3
 # TURN CONSTANTS
 backwardsMaxSpeed = maxstraightSpeed*0.6
 lturnsteps = 17.241
-rturnsteps = lturnsteps# - 0.058
+rturnsteps = lturnsteps - 0.058
 currentmA = 850 # vref * 0.707 gets you current (RMS)
 tmc_uart_en = True
 spreadCycleEn = True
@@ -95,8 +95,12 @@ if True: # define all functions
         iAtEndinitial = iAtEnd
         presetDelay = calcS(straightSpeed)
         gc.collect()
+        if saccel > 4.8:
+            offsetval = 3
+        else:
+            offsetval = 0
         for i in range(1, iAtEndinitial):
-            delayi = round(saccel_literal/sqrt(i+3))-2
+            delayi = round(saccel_literal/sqrt(i+offsetval))-2
             if delayi < presetDelay:
                 iAtEnd = i
                 break
@@ -172,8 +176,12 @@ if True: # define all functions
         iAtEndinitial = iAtEnd
         presetDelay = calcS(speedLimit)
         gc.collect()
+        if taccel > 4.5:
+            offsetval = 1
+        else:
+            offsetval = 0
         for i in range(1, iAtEndinitial):
-            delayi = round(taccel_literal/sqrt(i+1))-2
+            delayi = round(taccel_literal/sqrt(i+offsetval))-2
             if delayi < presetDelay:
                 iAtEnd = i
                 break
