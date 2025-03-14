@@ -25,8 +25,8 @@ if taccel < 3.8:
 minstraightSpeed = 3
 # TURN CONSTANTS
 backwardsMaxSpeed = maxstraightSpeed*0.6
-lturnsteps = 17.241
-rturnsteps = lturnsteps - 0.058
+lturnsteps = 17.394
+rturnsteps = lturnsteps + 0.112
 currentmA = 850 # vref * 0.707 gets you current (RMS)
 tmc_uart_en = True
 spreadCycleEn = True
