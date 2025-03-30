@@ -299,16 +299,6 @@ if True: # define all functions
         AdjustSpeedTime(targetTimeLeft, commands, command_number)
         # print((ticks_ms() - startTime))
 
-    def tmcfuncs():
-        if tmc_uart_en == True:
-            #tmc.setCurrent(currentmA, hold_current_multiplier = 1, hold_current_delay = 10, Vref = 1.325)
-            tmc.setSpreadCycle(spreadCycleEn)
-            #tmc.setDirection_reg(True)
-            #tmc.setVSense(False)
-            #tmc.setIScaleAnalog(False) #default
-            #tmc.setInterpolation(True)
-            #tmc.setMicrosteppingResolution(16)
-            #tmc.setInternalRSense(False)
 
     def lcd_voltage():
         voltage = battNew.read_u16()/65536*3.29*6.1-0.05
@@ -434,10 +424,34 @@ try:
     del voltage
 
     if tmc_uart_en == True:
-        from TMC_2209_StepperDriver import *
-        tmc = TMC_2209(18, 19, 20, Pin(9), Pin(8),mtr_id=3) # unused pins
-        tmc.setLoglevel(Loglevel.debug)
-        tmcfuncs()
+        try:
+            from TMC_2209_StepperDriver import *
+            tmc = TMC_2209(18, 19, 20, Pin(9), Pin(8),mtr_id=3) # unused pins
+            tmc.setLoglevel(Loglevel.debug)
+            #tmc.setCurrent(currentmA, hold_current_multiplier = 1, hold_current_delay = 10, Vref = 1.325)
+            tmc.setSpreadCycle(spreadCycleEn)
+            #tmc.setDirection_reg(True)
+            #tmc.setVSense(False)
+            #tmc.setIScaleAnalog(False) #default
+            #tmc.setInterpolation(True)
+            #tmc.setMicrosteppingResolution(16)
+            #tmc.setInternalRSense(False)
+        except Exception as e:
+            printlcd("TMC UART FAILED")
+            display.text('NOT RUNNING!!!', 0, 30, 1)
+            display.show()
+            buzzer.duty_u16(1000)
+            for i in range(5):
+                led.on()
+                buzzer.freq(400)
+                sleep(0.3)
+                led.off()
+                buzzer.freq(800)
+                sleep(0.15)
+            buzzer.duty_u16(0)
+            while True:
+                sleep(1)
+
     
     gc.collect()
 
@@ -600,7 +614,8 @@ try:
         "D8": 4699,
         "DS8": 4978
         }
-        rickAstley=(bool(random.getrandbits(1)))
+
+        rickAstley = (random.randint(0,100000) < 69420)
         if rickAstley:
             song = ['D4','E4','G4','E4','B4','P','B4','P','A4','P','P','D4','E4','G4','E4','A4','P','A4','P','G4'] #Im gonna give you up
         else:
