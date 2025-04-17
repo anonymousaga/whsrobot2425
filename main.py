@@ -10,6 +10,11 @@ from time import sleep, ticks_ms, sleep_us, time
 from math import sqrt
 from sys import exit
 import _thread
+
+silent=False # initialize variables if they dont exist
+saccel = 4.3 
+turnSpeedDefault = 95 
+maxstraightSpeed = 145 
 from rv import * #robot vars
 
 
@@ -25,8 +30,8 @@ if taccel < 3.8:
 minstraightSpeed = 3
 # TURN CONSTANTS
 backwardsMaxSpeed = maxstraightSpeed*0.6
-lturnsteps = 17.394
-rturnsteps = lturnsteps + 0.112
+lturnsteps = 15.485
+rturnsteps = lturnsteps + 0.062
 currentmA = 850 # vref * 0.707 gets you current (RMS)
 tmc_uart_en = True
 spreadCycleEn = True
