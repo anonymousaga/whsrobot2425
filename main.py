@@ -366,6 +366,9 @@ buzzer = PWM(buzzPin)
 buzzer.freq(1000)
 buzzer.duty_u16(0)
 
+speakerPin = Pin(6, Pin.OUT)
+speakerPin.low()
+
 enPin1 = Pin(10, Pin.OUT)
 enPin1.high()
 dirfront(dirPin1)
@@ -507,10 +510,15 @@ try:
     buzzer.duty_u16(1000)
     sleep(0.21)
     buzzer.duty_u16(0)
+
+    if silent == False:
+        speakerPin.high()
+    
     run_array(commands)
     print("")
     printlcd(
         f'Time: {(ticks_ms() - (startTime-startTimeOffset*1000))/1000:.2f}s')
+    speakerPin.low() # turn off the sound
     # BUZZ (for fun)
     buzzer.freq(750)
     buzzer.duty_u16(1000)
@@ -648,6 +656,7 @@ try:
 except KeyboardInterrupt:
     led.off()
     enPin1.high()
+    speakerPin.low()
     buzzer.duty_u16(0)
     print("Program Exited")
     display.fill(0)
