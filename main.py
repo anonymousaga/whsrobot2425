@@ -1,11 +1,7 @@
-# TO BE RUN ON A RASPBERRY PI PICO
-# UPLOAD FILE WITH AMPY OR RSHELL
-from machine import freq
-freq(250000000)
-from machine import Pin, Timer, I2C, reset, freq, PWM, ADC
+# THIS FILE PREDICTS THE ROBOT'S SPEED USING THE MAIN ACCELERATION ALGORITHM
+# Run by entering rv.py as usual, then type "micropython main.py" on the Terminal
 import gc
 import os
-import ssd1306
 from time import sleep, ticks_ms, sleep_us, time
 from math import sqrt
 from sys import exit
@@ -33,7 +29,7 @@ backwardsMaxSpeed = maxstraightSpeed*0.6
 lturnsteps = 15.485
 rturnsteps = lturnsteps + 0.062
 currentmA = 850 # vref * 0.707 gets you current (RMS)
-tmc_uart_en = True
+tmc_uart_en = False
 spreadCycleEn = True
 ending_led_period = .5 # how long before finish to turn off led at end
 
@@ -345,41 +341,6 @@ straightSpeed = (minstraightSpeed+maxstraightSpeed)/2
 turnTime = 0.0035
 taccel_delay = 0.25
 
-led = Pin(25, Pin.OUT)
-step_pin = Pin(14, Pin.OUT)
-dirPin1 = Pin(11, Pin.OUT)
-dirPin2 = Pin(12, Pin.OUT)
-Pin(23, Pin.OUT).high()  # Switch PSU to PWM from PSM for better ADC
-#saccel_delay = round(0.00002909/((saccel)**3) + 0.041, 3)
-#if saccel_delay > 0.8:
-#    saccel_delay = 0.612
-#elif saccel_delay < 0.1:
-#    saccel_delay = 0.198
-#print(f'Saccel Delay: {saccel_delay}')
-battNew = ADC(Pin(28, Pin.IN))
-if silent == True:
-    buzzPin = Pin(21, Pin.OUT)  # unused pin to silence buzzer
-else:
-    buzzPin = Pin(17, Pin.OUT)
-buzzPin.low()
-buzzer = PWM(buzzPin)
-buzzer.freq(1000)
-buzzer.duty_u16(0)
-
-speakerPin = Pin(6, Pin.OUT)
-speakerPin.low()
-
-enPin1 = Pin(10, Pin.OUT)
-enPin1.high()
-dirfront(dirPin1)
-dirfront(dirPin2)
-led.low()
-button = Pin(5, Pin.IN, Pin.PULL_UP)
-i2c = I2C(1, freq=400000, scl=Pin(3), sda=Pin(2))
-try:
-    display = ssd1306.SSD1306_I2C(128, 64, i2c)
-except:
-    print("I2C OLED NOT WORKING!")
 
 command_number = 0
 
@@ -407,9 +368,10 @@ del errorcommands
 try:
     startTime = ticks_ms() - 250
     AdjustSpeedTimeRealTime()
-    voltage, undervoltage = lcd_voltage()
-    print(str(voltage) + ' V')
+    voltage, undervoltage = 9, False
     try:
+        print(f'Speed: {straightSpeed:.2f}')
+        print(f'Target: {targetTime}s')
         display.text(f'Speed: {straightSpeed:.2f}', 0, 15, 1)
         display.text("WAIT 0.5 SEC", 0, 30, 1)
         display.text(f'Target: {targetTime}s', 0, 45, 1)
@@ -469,6 +431,7 @@ try:
     except:
         pass
     countled = 0
+    exit()
     while True:
         if countled == 12500:
             lcd_voltage()
