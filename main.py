@@ -12,6 +12,7 @@ from sys import exit
 import _thread
 
 silent=False # initialize variables if they dont exist
+currentmA = 900
 saccel = 4.3 
 turnSpeedDefault = 95 
 maxstraightSpeed = 145 
@@ -32,7 +33,6 @@ minstraightSpeed = 3
 backwardsMaxSpeed = maxstraightSpeed*0.6
 lturnsteps = 15.485
 rturnsteps = lturnsteps + 0.062
-currentmA = 850 # vref * 0.707 gets you current (RMS)
 tmc_uart_en = True
 spreadCycleEn = True
 ending_led_period = .5 # how long before finish to turn off led at end
@@ -436,14 +436,14 @@ try:
             from TMC_2209_StepperDriver import *
             tmc = TMC_2209(18, 19, 20, Pin(9), Pin(8),mtr_id=3) # unused pins
             tmc.setLoglevel(Loglevel.debug)
-            #tmc.setCurrent(currentmA, hold_current_multiplier = 1, hold_current_delay = 10, Vref = 1.325)
+            tmc.setVSense(False)
+            tmc.setInterpolation(True)
+            tmc.setMicrosteppingResolution(16)
+            tmc.setInternalRSense(False)
+            tmc.setIScaleAnalog(False)
+            tmc.setCurrent(currentmA, Vref = 2.1) # POTENTIOMETERS MUST BE AT MAX VREF (~2.3V)
             tmc.setSpreadCycle(spreadCycleEn)
-            #tmc.setDirection_reg(True)
-            #tmc.setVSense(False)
-            #tmc.setIScaleAnalog(False) #default
-            #tmc.setInterpolation(True)
-            #tmc.setMicrosteppingResolution(16)
-            #tmc.setInternalRSense(False)
+            tmc.setDirection_reg(True)
         except Exception as e:
             printlcd("TMC UART FAILED")
             display.text('NOT RUNNING!!!', 0, 30, 1)
