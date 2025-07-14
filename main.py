@@ -306,7 +306,7 @@ if True: # define all functions
 
 
     def lcd_voltage():
-        voltage = battNew.read_u16()/65536*3.29*6.1-0.05
+        voltage = battNew.read_u16()/65536*3.33*6.2
         if voltage <= 0:
             voltage = 0
         voltagestr = f'{voltage:.2f} V' 
