@@ -10,6 +10,7 @@ from time import sleep, ticks_ms, sleep_us, time
 from math import sqrt
 from sys import exit
 import _thread
+import rp2
 
 silent=False # initialize variables if they dont exist
 currentmA = 900
@@ -127,18 +128,18 @@ if True: # define all functions
         range2=range(iAtEnd-1, 2+steps-iAtEnd)
         range3=range((-1*iAtEnd)+2, 0)
         starttime2=ticks_ms()
-        for i in range(1, iAtEnd-1):
-            step_pin.value(1)
-            step_pin.value(0)
-            sleep_us(delay[i])
-        for i in range2:
-            step_pin.value(1)
-            step_pin.value(0)
-            sleep_us(presetDelay)
-        for i in range3:
-            step_pin.value(1)
-            step_pin.value(0)
-            sleep_us(delay[i*-1])
+
+       
+        # Example usage:
+        sm_accel.active(1)  # Enable state machine
+        sm_accel.put(200)      # Number of steps 
+        sm_accel.put(1000)   # Target delay (lower = faster)
+        #sm_accel.put(100)     # Acceleration rate (higher = faster accel)
+        while sm_accel.tx_fifo():    # Wait for completion
+            print("mme")
+            pass
+        sleep(2)
+        sm_accel.active(0)           # Disable when done
         endtime2=ticks_ms()
         print(f"Elapsed Time: { (endtime2 - starttime2) / 1000 } seconds")
         command_number += 1  # Shift position to next command
@@ -356,6 +357,47 @@ Pin(23, Pin.OUT).high()  # Switch PSU to PWM from PSM for better ADC
 #elif saccel_delay < 0.1:
 #    saccel_delay = 0.198
 #print(f'Saccel Delay: {saccel_delay}')
+
+# Set up PIO for step pulses
+@rp2.asm_pio(set_init=rp2.PIO.OUT_LOW)
+def step_pulse():
+    wrap_target()
+    pull()                    # Pull delay value from FIFO
+    mov(x, osr)              # Load delay value into X
+    set(pins, 1) [15]        # Set step pin high for 16 cycles
+    set(pins, 0) [15]        # Set step pin low for 16 cycles
+    label("delay_loop")      
+    jmp(x_dec, "delay_loop") # Delay loop
+    wrap()      
+
+@rp2.asm_pio(set_init=rp2.PIO.OUT_LOW)
+def step_accel():
+    # Pull count of steps
+    pull()  
+    mov(y, osr)              # Store total steps in Y
+    
+    # Pull target delay
+    pull()
+    mov(x, osr)              # Store target delay in X
+
+    # Main loop
+    label("step_loop")
+    set(pins, 1) [15]    # Step high with delay
+    set(pins, 0) [15]    # Step low with delay
+    
+    # Delay loop
+    mov(isr, x)          # Load current delay value
+    label("delay_loop")
+    nop() [15]
+    jmp(x_dec, "delay_loop")
+        
+    # Decrement step counter
+    jmp(y_dec, "step_loop")  # Loop if more steps remain
+
+
+sm_accel = rp2.StateMachine(0, step_accel, freq=125_000_000, set_base=step_pin)
+sm = rp2.StateMachine(0, step_pulse, freq=125_000_000, set_base=step_pin)
+
 battNew = ADC(Pin(28, Pin.IN))
 if silent == True:
     buzzPin = Pin(21, Pin.OUT)  # unused pin to silence buzzer
