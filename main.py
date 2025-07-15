@@ -1,7 +1,7 @@
 # TO BE RUN ON A RASPBERRY PI PICO
 # UPLOAD FILE WITH AMPY OR RSHELL
 from machine import freq
-freq(250000000)
+freq(300000000)
 from machine import Pin, Timer, I2C, reset, freq, PWM, ADC
 import gc
 import os
@@ -131,15 +131,14 @@ if True: # define all functions
 
        
         # Example usage:
-        sm_accel.active(1)  # Enable state machine
-        sm_accel.put(200)      # Number of steps 
-        sm_accel.put(1000)   # Target delay (lower = faster)
-        #sm_accel.put(100)     # Acceleration rate (higher = faster accel)
-        while sm_accel.tx_fifo():    # Wait for completion
-            print("mme")
-            pass
-        sleep(2)
-        sm_accel.active(0)           # Disable when done
+        sm.active(1)  # Enable state machine
+        for i in range(1, iAtEnd-1):
+            sm.put(delay[i])
+        for _ in range2:
+            sm.put(presetDelay)
+        for i in range3:
+            sm.put(delay[i*-1])
+        sm.active(0)           # Disable when done
         endtime2=ticks_ms()
         print(f"Elapsed Time: { (endtime2 - starttime2) / 1000 } seconds")
         command_number += 1  # Shift position to next command
@@ -367,36 +366,20 @@ def step_pulse():
     set(pins, 1) [15]        # Set step pin high for 16 cycles
     set(pins, 0) [15]        # Set step pin low for 16 cycles
     label("delay_loop")      
-    jmp(x_dec, "delay_loop") # Delay loop
+    nop() [29]              # Each nop() adds 30 cycles
+    nop() [29]              # Each nop() adds 30 cycles
+    nop() [29]              # Each nop() adds 30 cycles
+    nop() [29]              # Each nop() adds 30 cycles
+    nop() [29]              # Each nop() adds 30 cycles
+    nop() [29]              # Each nop() adds 30 cycles
+    nop() [29]              # Each nop() adds 30 cycles
+    nop() [29]              # Each nop() adds 30 cycles
+    nop() [29]              # Each nop() adds 30 cycles
+    nop() [29]              # Each nop() adds 30 cycles
+    jmp(x_dec, "delay_loop") # Jump decrements x and loops until x=0 
     wrap()      
 
-@rp2.asm_pio(set_init=rp2.PIO.OUT_LOW)
-def step_accel():
-    # Pull count of steps
-    pull()  
-    mov(y, osr)              # Store total steps in Y
-    
-    # Pull target delay
-    pull()
-    mov(x, osr)              # Store target delay in X
-
-    # Main loop
-    label("step_loop")
-    set(pins, 1) [15]    # Step high with delay
-    set(pins, 0) [15]    # Step low with delay
-    
-    # Delay loop
-    mov(isr, x)          # Load current delay value
-    label("delay_loop")
-    nop() [15]
-    jmp(x_dec, "delay_loop")
-        
-    # Decrement step counter
-    jmp(y_dec, "step_loop")  # Loop if more steps remain
-
-
-sm_accel = rp2.StateMachine(0, step_accel, freq=125_000_000, set_base=step_pin)
-sm = rp2.StateMachine(0, step_pulse, freq=125_000_000, set_base=step_pin)
+sm = rp2.StateMachine(0, step_pulse, freq=300_000_000, set_base=step_pin)
 
 battNew = ADC(Pin(28, Pin.IN))
 if silent == True:
