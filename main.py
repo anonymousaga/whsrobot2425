@@ -54,12 +54,7 @@ if True: # define all functions
             pass
         print(text)
 
-    def ending_led(delaylength_s):
-        if delaylength_s > 0:
-            sleep(delaylength_s)
-        else:
-            print("ending led delay is negative!")
-            sleep(0.02)
+    def ending_led(timer=None):
         led.off()
 
     def calcS(speedy):
@@ -123,7 +118,7 @@ if True: # define all functions
         except:
             pass
         if ending==True:
-            _thread.start_new_thread(ending_led, (straightETA(cm, straightSpeed, saccel)-ending_led_period, ))
+            Timer(-1).init(mode=Timer.ONE_SHOT, period=int((straightETA(cm, straightSpeed, saccel)-ending_led_period)*1000), callback=ending_led)
         range2=range(iAtEnd-1, 2+steps-iAtEnd)
         range3=range((-iAtEnd)+2, 0)
         starttime2=ticks_ms()
