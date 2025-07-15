@@ -1,7 +1,7 @@
 # TO BE RUN ON A RASPBERRY PI PICO
 # UPLOAD FILE WITH AMPY OR RSHELL
 from machine import freq
-freq(250000000)
+freq(300000000)
 from machine import Pin, Timer, I2C, reset, freq, PWM, ADC
 import gc
 import os
@@ -34,7 +34,7 @@ backwardsMaxSpeed = maxstraightSpeed*0.6
 lturnsteps = 15.485
 rturnsteps = lturnsteps + 0.062
 tmc_uart_en = True
-spreadCycleEn = True
+spreadCycleEn = False
 ending_led_period = .5 # how long before finish to turn off led at end
 
 
