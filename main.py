@@ -85,7 +85,7 @@ if True: # define all functions
         if cm < 0:
             dirfront(dirPin1)
             dirback(dirPin2)
-            cm *= -1
+            cm = -cm
         else:
             dirback(dirPin1)
             dirfront(dirPin2)
@@ -125,7 +125,7 @@ if True: # define all functions
         if ending==True:
             _thread.start_new_thread(ending_led, (straightETA(cm, straightSpeed, saccel)-ending_led_period, ))
         range2=range(iAtEnd-1, 2+steps-iAtEnd)
-        range3=range((-1*iAtEnd)+2, 0)
+        range3=range((-iAtEnd)+2, 0)
         starttime2=ticks_ms()
         for i in range(1, iAtEnd-1):
             step_pin.value(1)
@@ -138,7 +138,7 @@ if True: # define all functions
         for i in range3:
             step_pin.value(1)
             step_pin.value(0)
-            sleep_us(delay[i*-1])
+            sleep_us(delay[-i])
         endtime2=ticks_ms()
         print(f"Elapsed Time: { (endtime2 - starttime2) / 1000 } seconds")
         command_number += 1  # Shift position to next command
@@ -168,7 +168,7 @@ if True: # define all functions
             dirfront(dirPin1)
             dirfront(dirPin2)
             turn_steps = lturnsteps
-            degreeval *= -1
+            degreeval = -degreeval
         else:
             dirback(dirPin1)
             dirback(dirPin2)
