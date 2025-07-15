@@ -35,7 +35,7 @@ lturnsteps = 15.485
 rturnsteps = lturnsteps + 0.062
 tmc_uart_en = True
 spreadCycleEn = False
-ending_led_period = .5 # how long before finish to turn off led at end
+ending_led_period = .75 # how long before finish to turn off led at end
 
 
 if True: # define all functions
@@ -100,7 +100,7 @@ if True: # define all functions
         else:
             offsetval = 0
         for i in range(1, iAtEndinitial):
-            delayi = round(saccel_literal/sqrt(i+offsetval))-2
+            delayi = int(saccel_literal/sqrt(i+offsetval))-2
             if delayi < presetDelay:
                 iAtEnd = i
                 break
@@ -181,7 +181,7 @@ if True: # define all functions
         else:
             offsetval = 0
         for i in range(1, iAtEndinitial):
-            delayi = round(taccel_literal/sqrt(i+offsetval))-2
+            delayi = int(taccel_literal/sqrt(i+offsetval))-2
             if delayi < presetDelay:
                 iAtEnd = i
                 break
