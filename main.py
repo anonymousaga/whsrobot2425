@@ -10,6 +10,7 @@ from time import sleep, ticks_ms, sleep_us, time
 from math import sqrt
 from sys import exit
 import _thread
+import tcs34725
 
 silent=False # initialize variables if they dont exist
 currentmA = 900
@@ -60,10 +61,12 @@ if True: # define all functions
     def calcS(speedy):
         return round((7756.33/speedy) - 10.157)
 
-    def s(cm, ending):
+    def s(cm, ending=False):
         global command_number
         global straightSpeed
-        global runCurrent
+        global last_val_middle
+        global run_tcs
+        global stepcount
         global speed_steps_ratio
         AdjustSpeedTimeRealTime()  # timing function
         if cm < 0 and straightSpeed > backwardsMaxSpeed:
@@ -91,6 +94,8 @@ if True: # define all functions
             saccel_literal = saccel
         saccel_literal = 25000/saccel_literal
         delay = []
+        stepcount = 0
+        last_val_middle = 0
         iAtEnd = int(steps*.496)
         iAtEndinitial = iAtEnd
         presetDelay = calcS(straightSpeed)
@@ -121,21 +126,37 @@ if True: # define all functions
             Timer(-1).init(mode=Timer.ONE_SHOT, period=int((straightETA(cm, straightSpeed, saccel)-ending_led_period)*1000), callback=ending_led)
         range2=range(iAtEnd-1, 2+steps-iAtEnd)
         range3=range((-iAtEnd)+2, 0)
+        _thread.start_new_thread(tcs_scan, (None,))
         starttime2=ticks_ms()
         for i in range(1, iAtEnd-1):
             step_pin.value(1)
             step_pin.value(0)
+            stepcount += 1
             sleep_us(delay[i])
         for i in range2:
             step_pin.value(1)
             step_pin.value(0)
+            stepcount += 1
             sleep_us(presetDelay)
         for i in range3:
             step_pin.value(1)
             step_pin.value(0)
+            stepcount += 1
             sleep_us(delay[-i])
         endtime2=ticks_ms()
         print(f"Elapsed Time: { (endtime2 - starttime2) / 1000 } seconds")
+        run_tcs = False  # stop the tcs34725 sensor
+        middle_edge = []
+        try:
+            print("Parsing tcs34725 data...")
+            for index,i in enumerate(rising_edge):
+                x=(rising_edge[index]+falling_edge[index])/(2*straightsteps)
+                middle_edge.append(x)
+                last_val_middle = round(x-cm+25,2)
+                print("Distance at step: ", last_val_middle, "cm")
+         
+        except Exception as e:
+            print("Error parsing TCS34725 data: ", e)
         command_number += 1  # Shift position to next command
 
 
@@ -151,6 +172,44 @@ if True: # define all functions
                 s(i[1], ending=runTheLight)
             elif i[0]==1:
                 t(i[1])
+
+    def tcs_scan(randomarg=None):
+        global stepcount
+        global rising_edge
+        global tcsensor
+        global falling_edge
+        global run_tcs
+        run_tcs = True
+        rising_edge = []
+        falling_edge = []
+        consecutive_high = 0
+        consecutive_low = 0
+        is_high = False
+        
+        while run_tcs:
+            try:
+                reading = tcsensor.read()
+                #print(reading)
+                if reading[0] > 3500:
+                    if not is_high:
+                        consecutive_high += 1
+                        if consecutive_high >= 1:
+                            rising_edge.append(stepcount)
+                            is_high = True
+                            consecutive_high = 0
+                    consecutive_low = 0
+                else:
+                    if is_high:
+                        consecutive_low += 1
+                        if consecutive_low >= 1:
+                            falling_edge.append(stepcount) 
+                            is_high = False
+                            consecutive_low = 0
+                    consecutive_high = 0
+                    
+            except Exception as e:
+                print("TCS Read Error: ", e)
+                break
 
 
     def turn(degreeval, speedLimit):
@@ -376,6 +435,17 @@ try:
 except:
     print("I2C OLED NOT WORKING!")
 
+try:
+    stepcount = 0
+    rising_edge = []
+    falling_edge = []
+    run_tcs = False
+    tcsensor = tcs34725.TCS34725(i2c)
+    tcsensor.integration_time(2.4)  # Set integration time to 2.4 ms
+    tcsensor.gain(4)  # Set gain to 4x
+    print("TCS Sensor 1 ID: ",tcsensor.sensor_id())  # Print sensor ID to verify connection
+except Exception as e:
+    print("TCS34725 Sensor not found or not working! ",e)
 command_number = 0
 
 
@@ -438,7 +508,7 @@ try:
             tmc.setIScaleAnalog(False)
             tmc.setCurrent(currentmA, Vref = 2.1) # POTENTIOMETERS MUST BE AT MAX VREF (~2.3V)
             tmc.setSpreadCycle(spreadCycleEn)
-            tmc.setDirection_reg(True)
+            tmc.setDirection_reg(False)
         except Exception as e:
             printlcd("TMC UART FAILED")
             display.text('NOT RUNNING!!!', 0, 30, 1)
@@ -510,6 +580,9 @@ try:
         speakerPin.high()
     
     run_array(commands)
+    if abs(last_val_middle) > 1:
+        printlcd(f'ADJ {last_val_middle:.1f}cm')
+        s(last_val_middle)
     print("")
     printlcd(
         f'Time: {(ticks_ms() - (startTime-startTimeOffset*1000))/1000:.2f}s')
