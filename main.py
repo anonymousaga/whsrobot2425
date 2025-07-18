@@ -70,10 +70,12 @@ if True: # define all functions
     def calcS(speedy):
         return round((7756.33/speedy) - 10.157)
 
-    def s(cm, ending=False):
+    def s(cm, ending=False, s_correction=True,tilt_correction=True):
         global command_number
         global straightSpeed
         global last_val_middle
+        global last_tiltangle
+        global last_val_middle2
         global run_tcs
         global stepcount
         global speed_steps_ratio
@@ -105,6 +107,8 @@ if True: # define all functions
         delay = []
         stepcount = 0
         last_val_middle = 0
+        last_val_middle2 = 0
+        last_tiltangle = 0
         iAtEnd = int(steps*.496)
         iAtEndinitial = iAtEnd
         presetDelay = calcS(straightSpeed)
@@ -135,7 +139,8 @@ if True: # define all functions
             Timer(-1).init(mode=Timer.ONE_SHOT, period=int((straightETA(cm, straightSpeed, saccel)-ending_led_period)*1000), callback=ending_led)
         range2=range(iAtEnd-1, 2+steps-iAtEnd)
         range3=range((-iAtEnd)+2, 0)
-        _thread.start_new_thread(tcs_scan, (None,))
+        if s_correction == True or tilt_correction == True:
+            _thread.start_new_thread(tcs_scan, (None,))
         starttime2=ticks_ms()
         for i in range(1, iAtEnd-1):
             step_pin.value(1)
@@ -156,16 +161,50 @@ if True: # define all functions
         print(f"Elapsed Time: { (endtime2 - starttime2) / 1000 } seconds")
         run_tcs = False  # stop the tcs34725 sensor
         middle_edge = []
-        try:
-            print("Parsing tcs34725 data...")
-            for index,i in enumerate(rising_edge):
-                x=(rising_edge[index]+falling_edge[index])/(2*straightsteps)
-                middle_edge.append(x)
-                last_val_middle = round(x-cm+25,2)
-                print("Distance at step: ", last_val_middle, "cm")
-         
-        except Exception as e:
-            print("Error parsing TCS34725 data: ", e)
+        middle_edge2 = []
+        diffvals = 0
+        if True:  # all the tcs34725 sensors code
+            try:
+                print("Parsing tcs34725 data...")
+                last_val_middle = 0
+                last_val_middle2 = 0
+                for index,i in enumerate(rising_edge):
+                    x=(rising_edge[index]+falling_edge[index])/(2*straightsteps)
+                    middle_edge.append(x)
+                    last_val_middle = round(x-cm+25+1.5,2) #sensors are 1.5cm in front of wheels
+                    print("Distance at step, sensor 1: ", last_val_middle, "cm")
+                for index,i in enumerate(rising_edge2):
+                    x=(rising_edge2[index]+falling_edge2[index])/(2*straightsteps)
+                    middle_edge2.append(x)
+                    last_val_middle2 = round(x-cm+25+1.5,2) # sensors are 1.5cm in front of wheels
+                    print("Distance at step, sensor 2: ", last_val_middle2, "cm")
+                last_val_middle_avg = round((last_val_middle + last_val_middle2) / 2,2)
+                if last_val_middle_avg != 0 and last_val_middle2 != 0:
+                    diffvals = last_val_middle - last_val_middle2
+                else:
+                    diffvals = 0
+                print("Difference between sensors is too high, tilt correction")
+                last_tiltangle=-1*round((360/(2*3.14159))*math.atan(diffvals/9.2),1) # 92mm is the horizontal distance between the two sensors
+                last_tiltangle += 3 # add 3 degrees right offset, sensors arent perfectly aligned
+                print("Tilt angle: ", last_tiltangle, "degrees")
+                if tilt_correction == True and abs(last_tiltangle) >= 1:
+                    printlcd(f'TILT {last_tiltangle:.0f}deg')
+                    t(last_tiltangle)
+                if s_correction == True:
+                    if abs(last_val_middle_avg) > .1:
+                        printlcd(f'ADJ {last_val_middle_avg:.1f}cm')
+                        if ending==True:
+                            s(last_val_middle_avg-8, False, False, False)
+                        else:
+                            s(last_val_middle_avg, False, False, False)
+                print("diffvals ",diffvals)
+
+            
+            except Exception as e:
+                print("Error parsing TCS34725 data: ", e)
+        else:
+            last_val_middle = 0
+            last_val_middle2 = 0
         command_number += 1  # Shift position to next command
 
 
@@ -185,37 +224,64 @@ if True: # define all functions
     def tcs_scan(randomarg=None):
         global stepcount
         global rising_edge
+        global rising_edge2
         global tcsensor
+        global tcsensor2
         global falling_edge
+        global falling_edge2
         global run_tcs
         run_tcs = True
         rising_edge = []
         falling_edge = []
+        rising_edge2 = []
+        falling_edge2 = []
         consecutive_high = 0
         consecutive_low = 0
+        consecutive_high2 = 0
+        consecutive_low2 = 0
         is_high = False
-        
+        is_high2 = False
         while run_tcs:
             try:
-                reading = tcsensor.read()
-                #print(reading)
-                if reading[0] > 3500:
+                # Read both sensors independently
+                reading1 = tcsensor.read()
+                reading2 = tcsensor2.read()
+
+                # Process sensor 1
+                if reading1[0] > 3500:
                     if not is_high:
                         consecutive_high += 1
-                        if consecutive_high >= 1:
-                            rising_edge.append(stepcount)
-                            is_high = True
-                            consecutive_high = 0
+                    if consecutive_high >= 1:
+                        rising_edge.append(stepcount)
+                        is_high = True
+                        consecutive_high = 0
                     consecutive_low = 0
                 else:
                     if is_high:
                         consecutive_low += 1
-                        if consecutive_low >= 1:
-                            falling_edge.append(stepcount) 
-                            is_high = False
-                            consecutive_low = 0
+                    if consecutive_low >= 1:
+                        falling_edge.append(stepcount)
+                        is_high = False
+                        consecutive_low = 0
                     consecutive_high = 0
-                    
+
+                # Process sensor 2 independently 
+                if reading2[0] > 3500:
+                    if not is_high2:
+                        consecutive_high2 += 1
+                    if consecutive_high2 >= 1:
+                        rising_edge2.append(stepcount)
+                        is_high2 = True
+                        consecutive_high2 = 0
+                    consecutive_low2 = 0
+                else:
+                    if is_high2:
+                        consecutive_low2 += 1
+                    if consecutive_low2 >= 1:
+                        falling_edge2.append(stepcount)
+                        is_high2 = False
+                        consecutive_low2 = 0
+                    consecutive_high2 = 0
             except Exception as e:
                 print("TCS Read Error: ", e)
                 break
@@ -461,7 +527,17 @@ try:
     tcsensor.gain(4)  # Set gain to 4x
     print("TCS Sensor 1 ID: ",tcsensor.sensor_id())  # Print sensor ID to verify connection
 except Exception as e:
-    print("TCS34725 Sensor not found or not working! ",e)
+    print("TCS34725 Sensor 1 not found or not working! ",e)
+
+try:
+    rising_edge2 = []
+    falling_edge2 = []
+    tcsensor2 = tcs34725.TCS34725(i2c2)
+    tcsensor2.integration_time(2.4)  # Set integration time to 2.4 ms
+    tcsensor2.gain(4)  # Set gain to 4x
+    print("TCS Sensor 2 ID: ",tcsensor2.sensor_id())  # Print sensor ID to verify connection
+except Exception as e:
+    print("TCS34725 Sensor 2 not found or not working! ",e)
 command_number = 0
 
 
@@ -597,9 +673,12 @@ try:
         speakerPin.high()
     
     run_array(commands)
-    if abs(last_val_middle) > 1:
-        printlcd(f'ADJ {last_val_middle:.1f}cm')
-        s(last_val_middle)
+    #if abs(last_val_middle) > .1:
+    #    printlcd(f'ADJ {last_val_middle:.1f}cm')
+    #    #s(last_val_middle)
+    #if abs(last_tiltangle) > 1:
+    #    printlcd(f'TILT {last_tiltangle:.0f}deg')
+    #    t(last_tiltangle)
     print("")
     printlcd(
         f'Time: {(ticks_ms() - (startTime-startTimeOffset*1000))/1000:.2f}s')
