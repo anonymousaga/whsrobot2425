@@ -55,6 +55,15 @@ if True: # define all functions
             pass
         print(text)
 
+    def printlcd2(text):
+        try:
+            display2.fill(0)
+            display2.text(text, 0, 0, 1)
+            display2.show()
+        except:
+            pass
+        print(text)
+
     def ending_led(timer=None):
         led.off()
 
@@ -402,7 +411,7 @@ taccel_delay = 0.25
 led = Pin(25, Pin.OUT)
 step_pin = Pin(14, Pin.OUT)
 dirPin1 = Pin(11, Pin.OUT)
-dirPin2 = Pin(12, Pin.OUT)
+dirPin2 = Pin(15, Pin.OUT)
 Pin(23, Pin.OUT).high()  # Switch PSU to PWM from PSM for better ADC
 #saccel_delay = round(0.00002909/((saccel)**3) + 0.041, 3)
 #if saccel_delay > 0.8:
@@ -430,10 +439,17 @@ dirfront(dirPin2)
 led.low()
 button = Pin(5, Pin.IN, Pin.PULL_UP)
 i2c = I2C(1, freq=400000, scl=Pin(3), sda=Pin(2))
+i2c2 = I2C(0, freq=400000, scl=Pin(13), sda=Pin(12))
 try:
     display = ssd1306.SSD1306_I2C(128, 64, i2c)
 except:
-    print("I2C OLED NOT WORKING!")
+    print("I2C OLED1 NOT WORKING!")
+
+try:
+    display2 = ssd1306.SSD1306_I2C(128, 64, i2c2)
+except:
+    print("I2C OLED2 NOT WORKING!")
+
 
 try:
     stepcount = 0
@@ -481,6 +497,7 @@ try:
         display.show()
     except:
         pass
+    printlcd2("Display2")
 
     if undervoltage == True:
         print('LOW VOLTAGE!')
@@ -586,6 +603,11 @@ try:
     print("")
     printlcd(
         f'Time: {(ticks_ms() - (startTime-startTimeOffset*1000))/1000:.2f}s')
+    try:
+        display2.fill(0)
+        display2.show()
+    except:
+        pass
     speakerPin.low() # turn off the sound
     # BUZZ (for fun)
     buzzer.freq(750)
@@ -731,6 +753,8 @@ except KeyboardInterrupt:
     display.text("Program Exited", 0, 0, 1)
     display.text("Press RESET", 0, 15, 1)
     display.show()
+    display2.fill(0)
+    display2.show()
 # reset()
 # I dont know why he puit the song in but remember, A bird does not sing because it has somthing to say, it sings becuase it has a song. 
 # Your critique, Izyan Syed
