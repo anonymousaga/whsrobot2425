@@ -286,6 +286,8 @@ if True: # define all functions
                 print("TCS Read Error: ", e)
                 break
 
+    def clear(): # clear main.py file to allow re-uploading in emergency
+        os.remove('main.py')
 
     def turn(degreeval, speedLimit):
         global command_number
@@ -444,11 +446,11 @@ if True: # define all functions
         else:
             undervolt=False
         try:
-            display.fill_rect(0, 0,130, 15, 0) # black out wait message
-            display.text(voltagestr, 0, 0, 1)
+            display2.fill_rect(0, 0,130, 15, 0) # black out wait message
+            display2.text(voltagestr, 0, 0, 1)
             if undervolt == True:
-                display.text('LOW!!!!', 70, 0, 1)
-            display.show()
+                display2.text('LOW!!!!', 70, 0, 1)
+            display2.show()
         except:
             pass
         return voltage, undervolt
@@ -573,7 +575,6 @@ try:
         display.show()
     except:
         pass
-    printlcd2("Display2")
 
     if undervoltage == True:
         print('LOW VOLTAGE!')
@@ -637,7 +638,6 @@ try:
             if button.value() == 0:
                 break
         countled += 1
-    del countled
     
     led.on()
     enPin1.low()
@@ -651,15 +651,20 @@ try:
     printlcd("Motors Enabled")
 
     while True:
+        if countled == 12500:
+            lcd_voltage()
+            countled = 0
         sleep_us(2)
         if button.value() == 0:
             sleep_us(25) # debounce 25ms
             if button.value() == 0:
                 break
+        countled += 1
     
     while button.value() == 0:
         sleep_us(2)   # wait until button is fully released
 
+    del countled
     # motor time offset, in nanoseconds
     startTime = ticks_ms() + startTimeOffset*(1000)
     printlcd("Starting Course")
@@ -821,7 +826,8 @@ try:
             bequiet()
         playsong(song)
     while True:
-        sleep(1)
+        lcd_voltage()
+        sleep(.75)
 except KeyboardInterrupt:
     led.off()
     enPin1.high()
