@@ -26,7 +26,7 @@ rturnsteps = lturnsteps
 startTimeOffset = 0 # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
 speed_steps_ratio = 0.04961
 straightsteps = 127.088
-saccel_initial = saccel - 0.3
+saccel_initial = saccel
 taccel = saccel - 0.3
 if taccel < 3.8:
     taccel = 3.8
