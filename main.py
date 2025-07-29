@@ -27,7 +27,7 @@ startTimeOffset = 0 # in seconds;  Negative means to decrease the amount of time
 speed_steps_ratio = 0.04961
 straightsteps = 127.088
 saccel_initial = saccel
-taccel = saccel - 0.3
+taccel = saccel - 0.2
 if taccel < 3.8:
     taccel = 3.8
 minstraightSpeed = 3
@@ -191,7 +191,8 @@ if True: # define all functions
                 last_tiltangle += 3 # add 3 degrees right offset, sensors arent perfectly aligned
                 if t_correction == True and abs(last_tiltangle) >= 1:
                     print(f'Tilt adjust: {last_tiltangle:.0f}deg')
-                    t(last_tiltangle)
+                else:
+                    last_tiltangle = 0
                 if s_correction == True:
                     if abs(last_val_middle_avg) > .1:
                         print(f'Straight adjust: {last_val_middle_avg:.1f}cm')
@@ -306,6 +307,7 @@ if True: # define all functions
         global command_number
         global turnTime
         startTurnTime = ticks_ms()
+        degreeval += last_tiltangle
         if slow == True:
             turnSpeed = slowSpeed
         else:
