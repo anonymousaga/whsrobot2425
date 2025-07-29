@@ -11,8 +11,9 @@ saccel = 4.2 #4.15 #5.45
 turnSpeedDefault = 95 #90 #120
 maxstraightSpeed = 145 #100 #145
 
-currentmA = 650 # combined current for both motors
-
+# TURN VARS
+lturnsteps = 15.485
+rturnsteps = lturnsteps + 0.062
 
 commands="""
 s32

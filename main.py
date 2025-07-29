@@ -12,17 +12,18 @@ from sys import exit
 import _thread
 import tcs34725
 
-silent=False # initialize variables if they dont exist
-currentmA = 900
-saccel = 4.3 
-turnSpeedDefault = 95 
-maxstraightSpeed = 145 
-from rv import * #robot vars
+# initialize variables to defaults if they dont exist
+silent = False
+targetTime = 60
+saccel = 4.2
+turnSpeedDefault=95
+maxstraightSpeed=145
+lturnsteps = 15.5
+rturnsteps = lturnsteps
 
 
 # DO NOT EDIT THESE DURING COMPETITION
-# Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
-startTimeOffset = 0 # in seconds
+startTimeOffset = 0 # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
 speed_steps_ratio = 0.04961
 straightsteps = 127.088
 saccel_initial = saccel - 0.3
@@ -30,14 +31,14 @@ taccel = saccel - 0.3
 if taccel < 3.8:
     taccel = 3.8
 minstraightSpeed = 3
-# TURN CONSTANTS
+slowSpeed = 50
 backwardsMaxSpeed = maxstraightSpeed*0.6
-lturnsteps = 15.485
-rturnsteps = lturnsteps + 0.062
 tmc_uart_en = True
 spreadCycleEn = False
-ending_led_period = .75 # how long before finish to turn off led at end
+currentmA = 925 # combined current for both motors
+ending_led_period = 0.75 # how long before finish to turn off led at end
 
+from rv import * #robot vars
 
 if True: # define all functions
     def dirfront(dirPin):
@@ -70,9 +71,10 @@ if True: # define all functions
     def calcS(speedy):
         return round((7756.33/speedy) - 10.157)
 
-    def s(cm, ending=False, s_correction=True,tilt_correction=True):
+    def s(cm, ending=False, s_correction=True,t_correction=True, slow=False):
         global command_number
         global straightSpeed
+        global slowSpeed
         global last_val_middle
         global last_tiltangle
         global last_val_middle2
@@ -82,11 +84,14 @@ if True: # define all functions
         AdjustSpeedTimeRealTime()  # timing function
         if cm < 0 and straightSpeed > backwardsMaxSpeed:
             straightSpeed = backwardsMaxSpeed
-        print('STRAIGHT')
+        if slow == True and straightSpeed > slowSpeed:
+            straightSpeed = slowSpeed
+        print("STRAIGHT")
         try:
             display.fill(0)
             display.text('STRAIGHT', 0, 0, 1)
-            display.text(f'Speed: {straightSpeed:.2f}', 0, 30, 1)
+            display.text(f'CM: {cm:.0f}', 0, 15, 1)
+            display.text(f'SPEED: {straightSpeed:.0f}', 0, 30, 1)
             display.show()
         except:
             pass
@@ -131,7 +136,7 @@ if True: # define all functions
             print("iAtEnd ",iAtEnd)
             print("len(delay) ",len(delay))
         try:
-            display.text('AccelSteps%: ' + str(int((100*iAtEnd)/(steps/2))), 0, 45, 1)
+            display.text('ACCEL%: ' + str(round((100*iAtEnd)/(steps/2))), 0, 45, 1)
             display.show()
         except:
             pass
@@ -139,7 +144,7 @@ if True: # define all functions
             Timer(-1).init(mode=Timer.ONE_SHOT, period=int((straightETA(cm, straightSpeed, saccel)-ending_led_period)*1000), callback=ending_led)
         range2=range(iAtEnd-1, 2+steps-iAtEnd)
         range3=range((-iAtEnd)+2, 0)
-        if s_correction == True or tilt_correction == True:
+        if s_correction == True or t_correction == True:
             _thread.start_new_thread(tcs_scan, (None,))
         starttime2=ticks_ms()
         for i in range(1, iAtEnd-1):
@@ -160,12 +165,11 @@ if True: # define all functions
         endtime2=ticks_ms()
         print(f"Elapsed Time: { (endtime2 - starttime2) / 1000 } seconds")
         run_tcs = False  # stop the tcs34725 sensor
-        middle_edge = []
-        middle_edge2 = []
-        diffvals = 0
         if True:  # all the tcs34725 sensors code
             try:
-                print("Parsing tcs34725 data...")
+                middle_edge = []
+                middle_edge2 = []
+                diffvals = 0
                 last_val_middle = 0
                 last_val_middle2 = 0
                 for index,i in enumerate(rising_edge):
@@ -183,29 +187,24 @@ if True: # define all functions
                     diffvals = last_val_middle - last_val_middle2
                 else:
                     diffvals = 0
-                print("Difference between sensors is too high, tilt correction")
-                last_tiltangle=-1*round((360/(2*3.14159))*math.atan(diffvals/9.2),1) # 92mm is the horizontal distance between the two sensors
+                last_tiltangle=-1*round((360/(2*3.14159))*math.atan(diffvals/9.2),1) # 9.2cm is the horizontal distance between the two sensors
                 last_tiltangle += 3 # add 3 degrees right offset, sensors arent perfectly aligned
-                print("Tilt angle: ", last_tiltangle, "degrees")
-                if tilt_correction == True and abs(last_tiltangle) >= 1:
-                    printlcd(f'TILT {last_tiltangle:.0f}deg')
+                if t_correction == True and abs(last_tiltangle) >= 1:
+                    print(f'Tilt adjust: {last_tiltangle:.0f}deg')
                     t(last_tiltangle)
                 if s_correction == True:
                     if abs(last_val_middle_avg) > .1:
-                        printlcd(f'ADJ {last_val_middle_avg:.1f}cm')
+                        print(f'Straight adjust: {last_val_middle_avg:.1f}cm')
                         if ending==True:
-                            s(last_val_middle_avg-8, False, False, False)
+                            s(last_val_middle_avg-8,s_correction=False,t_correction=False)
                         else:
-                            s(last_val_middle_avg, False, False, False)
-                print("diffvals ",diffvals)
+                            s(last_val_middle_avg,s_correction=False,t_correction=False)
+                #print("diffvals ",diffvals)
 
             
             except Exception as e:
                 print("Error parsing TCS34725 data: ", e)
-        else:
-            last_val_middle = 0
-            last_val_middle2 = 0
-        command_number += 1  # Shift position to next command
+        command_number += 1
 
 
     def run_array(arr):
@@ -217,9 +216,23 @@ if True: # define all functions
                     runTheLight = True
                 else:
                     runTheLight = False
-                s(i[1], ending=runTheLight)
+                
+                slowvar = False
+                t_correctionvar = True
+                s_correctionvar = True
+                for modifier in i[2]:
+                    if modifier == 1:
+                        slowvar = True
+                    elif modifier == 2:
+                        t_correctionvar = False
+                        s_correctionvar = False
+                s(i[1], ending=runTheLight, slow=slowvar, s_correction=s_correctionvar, t_correction=t_correctionvar)
             elif i[0]==1:
-                t(i[1])
+                slowvar = False
+                for modifier in i[2]:
+                    if modifier == 1:
+                        slowvar = True
+                t(i[1], slow=slowvar)
 
     def tcs_scan(randomarg=None):
         global stepcount
@@ -289,11 +302,23 @@ if True: # define all functions
     def clear(): # clear main.py file to allow re-uploading in emergency
         os.remove('main.py')
 
-    def turn(degreeval, speedLimit):
+    def t(degreeval, slow=False):
         global command_number
         global turnTime
         startTurnTime = ticks_ms()
-        printlcd("TURN")
+        if slow == True:
+            turnSpeed = slowSpeed
+        else:
+            turnSpeed=turnSpeedDefault
+        print("TURN")
+        try:
+            display.fill(0)
+            display.text('TURN', 0, 0, 1)
+            display.text(f'DEGREES: {degreeval:.0f}', 0, 15, 1)
+            display.text(f'SPEED: {turnSpeed:.0f}', 0, 30, 1)
+            display.show()
+        except:
+            pass
 
         if degreeval < 0:
             dirfront(dirPin1)
@@ -310,7 +335,7 @@ if True: # define all functions
         delay = []
         iAtEnd = int(steps*.496)
         iAtEndinitial = iAtEnd
-        presetDelay = calcS(speedLimit)
+        presetDelay = calcS(turnSpeed)
         gc.collect()
         if taccel > 4.5:
             offsetval = 1
@@ -348,36 +373,49 @@ if True: # define all functions
         #print("turnTime: ",turnTime)
 
 
-    def t(degreeval2):
-        turn(degreeval2, turnSpeedDefault)
-
     def straightETA(cm_dist,speed,accel): # accel is unused for now
         return cm_dist/speed + 0.43 + 0.00483546*(speed+30)
 
     def compileCommands(commandvar):
         commandvar = commandvar.strip().splitlines()
         command2 = []
+        modifier_lookup = {
+            "slow": 1,
+            "no-correction": 2,
+        }
         try:
-            for x in commandvar:
+            for xfull in commandvar:
+                xarr = xfull.split(" ")
+                x = xarr[0].strip()
+
+                # Process additional modifiers after the command
+                modifiers = [modif.strip() for modif in xarr[1:]]
+                modifiers_numeric = []
+                for modi in modifiers:
+                    try:
+                        modifiers_numeric.append(modifier_lookup[modi])
+                    except KeyError:
+                        print(f"Unknown modifier: '{modi}', skipping.")
+                
                 if x=="u":
-                    command2.append((1,180))
+                    command2.append((1,180,modifiers_numeric))
                 elif x=="-u":
-                    command2.append((1,-180))
+                    command2.append((1,-180,modifiers_numeric))
                 elif x=="l":
-                    command2.append((1,-90))
+                    command2.append((1,-90,modifiers_numeric))
                 elif x=="r":
-                    command2.append((1,90))
+                    command2.append((1,90,modifiers_numeric))
                 elif x=="rd":
-                    command2.append((1,45))
+                    command2.append((1,45,modifiers_numeric))
                 elif x=="ld":
-                    command2.append((1,-45))
+                    command2.append((1,-45,modifiers_numeric))
                 elif x.startswith("sd"):
-                    command2.append((0,float(x.strip("sd"))*1.414))
+                    command2.append((0,float(x.strip("sd"))*1.4142,modifiers_numeric)) # square root of 2
                 elif x.startswith("s"):
-                    command2.append((0,float(x.strip("s"))))
+                    command2.append((0,float(x.strip("s")),modifiers_numeric))
                 elif x.startswith("t"):
-                    command2.append((1,float(x.strip("t"))))
-                elif x.strip()=="":
+                    command2.append((1,float(x.strip("t")),modifiers_numeric))
+                elif x=="":
                     pass # skip blank lines
                 else:
                     raise ValueError('command is incorrect')
@@ -543,31 +581,21 @@ except Exception as e:
 command_number = 0
 
 
-
-
-
-commands, errorcommands = compileCommands(commands)
-if errorcommands != False:
-    print("Error: ", errorcommands)
-    try:
-        display.text('COMMANDS ERROR', 0, 15, 1)
-        display.text('PROGRAM EXITED', 0, 30, 1)
-        display.show()
-    except:
-        pass
-    exit()
-del errorcommands
-
-      
-
-
-
-
 try:
+    commands, errorcommands = compileCommands(commands)
+    if errorcommands != False:
+        print("Error: ", errorcommands)
+        try:
+            display.text('COMMANDS ERROR!!', 0, 50, 1)
+        except:
+            pass
+        raise KeyboardInterrupt()
+
+
     startTime = ticks_ms() - 250
     AdjustSpeedTimeRealTime()
     voltage, undervoltage = lcd_voltage()
-    print(str(voltage) + ' V')
+    print(str(voltage) + " V")
     try:
         display.text(f'Speed: {straightSpeed:.2f}', 0, 15, 1)
         display.text("WAIT 0.5 SEC", 0, 30, 1)
@@ -577,7 +605,7 @@ try:
         pass
 
     if undervoltage == True:
-        print('LOW VOLTAGE!')
+        print("LOW VOLTAGE!")
         buzzer.duty_u16(1000)
         for i in range(3):
             led.on()
@@ -834,7 +862,8 @@ except KeyboardInterrupt:
     speakerPin.low()
     buzzer.duty_u16(0)
     print("Program Exited")
-    display.fill(0)
+    if errorcommands == False: # leave the command error message on the display
+        display.fill(0)
     display.text("Program Exited", 0, 0, 1)
     display.text("Press RESET", 0, 15, 1)
     display.show()
