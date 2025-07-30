@@ -113,7 +113,7 @@ if True: # define all functions
         stepcount = 0
         last_val_middle = 0
         last_val_middle2 = 0
-        last_tiltangle = 0
+        last_tiltangle_internal = 0
         iAtEnd = int(steps*.496)
         iAtEndinitial = iAtEnd
         presetDelay = calcS(straightSpeed)
@@ -187,12 +187,13 @@ if True: # define all functions
                     diffvals = last_val_middle - last_val_middle2
                 else:
                     diffvals = 0
-                last_tiltangle=-1*round((360/(2*3.14159))*math.atan(diffvals/9.2),1) # 9.2cm is the horizontal distance between the two sensors
-                last_tiltangle += 3 # add 3 degrees right offset, sensors arent perfectly aligned
-                if t_correction == True and abs(last_tiltangle) >= 1:
+                last_tiltangle_internal=-1*round((360/(2*3.14159))*math.atan(diffvals/9.2),1) # 9.2cm is the horizontal distance between the two sensors
+                last_tiltangle_internal += 2.5 # add 2.5 degrees right offset, sensors arent perfectly aligned
+                if t_correction == True and abs(last_tiltangle_internal) >= 1:
+                    last_tiltangle = last_tiltangle_internal
                     print(f'Tilt adjust: {last_tiltangle:.0f}deg')
                 else:
-                    last_tiltangle = 0
+                    last_tiltangle_internal = 0
                 if s_correction == True:
                     if abs(last_val_middle_avg) > .1:
                         print(f'Straight adjust: {last_val_middle_avg:.1f}cm')
@@ -205,7 +206,6 @@ if True: # define all functions
             
             except Exception as e:
                 print("Error parsing TCS34725 data: ", e)
-        command_number += 1
 
 
     def run_array(arr):
@@ -306,8 +306,11 @@ if True: # define all functions
     def t(degreeval, slow=False):
         global command_number
         global turnTime
+        global last_tiltangle
         startTurnTime = ticks_ms()
+        print("Tilt turn adjust: ",last_tiltangle)
         degreeval += last_tiltangle
+        last_tiltangle = 0  # reset tilt angle after turn
         if slow == True:
             turnSpeed = slowSpeed
         else:
@@ -370,7 +373,6 @@ if True: # define all functions
             # sleep_us(delay2[i])
             step_pin.value(0)
             sleep_us(delay2[i])
-        command_number += 1  # Shift position to next command
         turnTime = (((ticks_ms()-startTurnTime)/1000)-taccel_delay)/degreeval
         #print("turnTime: ",turnTime)
 
@@ -561,6 +563,7 @@ except:
 
 try:
     stepcount = 0
+    last_tiltangle = 0
     rising_edge = []
     falling_edge = []
     run_tcs = False
@@ -708,12 +711,6 @@ try:
         speakerPin.high()
     
     run_array(commands)
-    #if abs(last_val_middle) > .1:
-    #    printlcd(f'ADJ {last_val_middle:.1f}cm')
-    #    #s(last_val_middle)
-    #if abs(last_tiltangle) > 1:
-    #    printlcd(f'TILT {last_tiltangle:.0f}deg')
-    #    t(last_tiltangle)
     print("")
     printlcd(
         f'Time: {(ticks_ms() - (startTime-startTimeOffset*1000))/1000:.2f}s')

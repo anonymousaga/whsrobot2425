@@ -23,4 +23,4 @@ action123 modifier1 modifier2
 
 ### Modifiers
 - `slow` - makes movements slow
-- `no-correction` - prevents adjusting the robot by reading the lines on the track with color sensors
+- `no-correction` - prevents adjusting the robot by reading the lines on the track with color sensors (straight moves only)
