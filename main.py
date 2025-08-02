@@ -15,17 +15,17 @@ import tcs34725
 # initialize variables to defaults if they dont exist
 silent = False
 targetTime = 60
-saccel = 4.2
+saccel = 4.0
 turnSpeedDefault=95
 maxstraightSpeed=145
-lturnsteps = 15.5
+lturnsteps = 11.7
 rturnsteps = lturnsteps
-
+from rv import * #robot vars
 
 # DO NOT EDIT THESE DURING COMPETITION
 startTimeOffset = 0 # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
 speed_steps_ratio = 0.04961
-straightsteps = 127.088
+straightsteps = 90.783
 saccel_initial = saccel
 taccel = saccel - 0.2
 if taccel < 3.8:
@@ -35,7 +35,7 @@ slowSpeed = 50
 backwardsMaxSpeed = maxstraightSpeed*0.6
 tmc_uart_en = True
 spreadCycleEn = False
-currentmA = 925 # combined current for both motors
+currentmA = 1200 # combined current for both motors
 ending_led_period = 0.75 # how long before finish to turn off led at end
 
 from rv import * #robot vars
@@ -69,7 +69,7 @@ if True: # define all functions
         led.off()
 
     def calcS(speedy):
-        return round((7756.33/speedy) - 10.157)
+        return round(((1020000/straightsteps)/speedy) - 10)
 
     def s(cm, ending=False, s_correction=True,t_correction=True, slow=False):
         global command_number
@@ -87,6 +87,7 @@ if True: # define all functions
         if slow == True and straightSpeed > slowSpeed:
             straightSpeed = slowSpeed
         print("STRAIGHT")
+        print(f'CM: {cm:.0f}, SPEED: {straightSpeed:.0f}, SACCEL: {saccel}')
         try:
             display.fill(0)
             display.text('STRAIGHT', 0, 0, 1)
@@ -163,7 +164,7 @@ if True: # define all functions
             stepcount += 1
             sleep_us(delay[-i])
         endtime2=ticks_ms()
-        print(f"Elapsed Time: { (endtime2 - starttime2) / 1000 } seconds")
+        print(f"Elapsed Time: {((endtime2 - starttime2) / 1000):.3f} seconds")
         run_tcs = False  # stop the tcs34725 sensor
         if True:  # all the tcs34725 sensors code
             try:

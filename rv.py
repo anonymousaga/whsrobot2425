@@ -1,7 +1,7 @@
 # DOWEL OFFSET 7CM
 # IF INTIAL SPEED IS OVER 60, TURN UP THE ACCEL TO MAX
 
-silent = False
+silent = True
 
 targetTime = 60
 
@@ -12,8 +12,8 @@ turnSpeedDefault = 90 #90 #120
 maxstraightSpeed = 145 #100 #145
 
 # TURN VARS
-lturnsteps = 15.485
-rturnsteps = lturnsteps + 0.062
+lturnsteps = 11.702
+rturnsteps = lturnsteps + 0.015
 
 commands="""
 s25
@@ -47,4 +47,15 @@ l
 l
 l
 l
+"""
+
+commands5= """
+u
+u
+u
+u
+u
+u
+u
+u
 """
