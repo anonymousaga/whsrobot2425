@@ -73,6 +73,15 @@ class SSD1306(framebuf.FrameBuffer):
             self.write_cmd(cmd)
         self.fill(0)
         self.show()
+    def rotate(self, angle):
+        if angle == 0:
+            self.write_cmd(SET_SEG_REMAP | 0x01)  # normal
+            self.write_cmd(SET_COM_OUT_DIR | 0x08)
+        elif angle == 180:
+            self.write_cmd(SET_SEG_REMAP | 0x00)  # flipped horizontally
+            self.write_cmd(SET_COM_OUT_DIR | 0x00)  # flipped vertically
+        else:
+            raise ValueError("Only 0 or 180 deg hardware rotation supported")
 
     def poweroff(self):
         self.write_cmd(SET_DISP | 0x00)

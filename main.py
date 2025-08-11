@@ -553,11 +553,13 @@ i2c = I2C(1, freq=400000, scl=Pin(3), sda=Pin(2))
 i2c2 = I2C(0, freq=400000, scl=Pin(13), sda=Pin(12))
 try:
     display = ssd1306.SSD1306_I2C(128, 64, i2c)
+    display.rotate(180)
 except:
     print("I2C OLED1 NOT WORKING!")
 
 try:
     display2 = ssd1306.SSD1306_I2C(128, 64, i2c2)
+    display2.rotate(180)
 except:
     print("I2C OLED2 NOT WORKING!")
 
