@@ -7,8 +7,8 @@ targetTime = 60
 
 # ACCEL VARS
 # SPEED VARS in cm/s
-saccel = 5.3 #4.0 #5.2
-maxstraightSpeed = 150 #100 #150
+saccel = 4.2 #4.0 #5.2
+maxstraightSpeed = 200 #100 #200
 
 # TURN VARS
 lturnsteps = 14.066
