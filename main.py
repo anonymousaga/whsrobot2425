@@ -612,12 +612,12 @@ try:
         except:
             pass
     else:
-        del tcsensor
-        del tcsensor2
         try:
             display2.text("NO ColorImport", 0, 30, 1)
         except:
             pass
+        del tcsensor
+        del tcsensor2
 except:
     pass
 
