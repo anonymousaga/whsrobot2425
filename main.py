@@ -199,7 +199,7 @@ if True: # define all functions
                     if abs(last_val_middle_avg) > .1:
                         print(f'Straight adjust: {last_val_middle_avg:.1f}cm')
                         if ending==True:
-                            s(last_val_middle_avg-8,s_correction=False,t_correction=False)
+                            s(last_val_middle_avg-8,s_correction=False,t_correction=False) # dowel is 8cm in front of wheels
                         else:
                             s(last_val_middle_avg,s_correction=False,t_correction=False)
                 #print("diffvals ",diffvals)
