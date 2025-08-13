@@ -720,6 +720,8 @@ try:
         sleep_us(10)
     sleep(0.17)
     printlcd("Motors Enabled")
+    display2.fill(0)
+    display2.show()
 
     while True:
         if countled == 12500:
