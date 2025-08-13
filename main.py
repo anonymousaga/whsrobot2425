@@ -10,6 +10,7 @@ from time import sleep, ticks_ms, sleep_us, time
 from math import sqrt
 from sys import exit
 import _thread
+import tcs34725
 
 
 # initialize variables to defaults if they dont exist
@@ -17,7 +18,7 @@ silent = False
 targetTime = 60
 saccel = 4.0
 turnSpeedDefault=80
-maxstraightSpeed=150
+maxstraightSpeed=200
 lturnsteps = 14.1
 rturnsteps = lturnsteps
 tcsImport = True
@@ -31,7 +32,7 @@ saccel_initial = saccel
 taccel = 4.33
 minstraightSpeed = 3
 slowSpeed = 50
-backwardsMaxSpeed = maxstraightSpeed*0.6
+backwardsMaxSpeed = maxstraightSpeed#*0.6
 tmc_uart_en = True
 spreadCycleEn = False
 currentmA = 1200 # combined current for both motors
@@ -560,17 +561,6 @@ try:
 except:
     print("I2C OLED2 NOT WORKING!")
 
-if tcsImport == True:
-    import tcs34725
-    try:
-        display2.text("YES ColorImport", 0, 30, 1)
-    except:
-        pass
-else:
-    try:
-        display2.text("NO ColorImport", 0, 30, 1)
-    except:
-        pass
 
 try:
     stepcount = 0
@@ -614,6 +604,23 @@ except Exception as e:
         display2.show()
     except:
         pass
+
+try:
+    if tcsImport == True:
+        try:
+            display2.text("YES ColorImport", 0, 30, 1)
+        except:
+            pass
+    else:
+        del tcsensor
+        del tcsensor2
+        try:
+            display2.text("NO ColorImport", 0, 30, 1)
+        except:
+            pass
+except:
+    pass
+
 command_number = 0
 
 
