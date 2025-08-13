@@ -176,19 +176,19 @@ if True: # define all functions
                 for index,i in enumerate(rising_edge):
                     x=(rising_edge[index]+falling_edge[index])/(2*straightsteps)
                     middle_edge.append(x)
-                    last_val_middle = round(x-cm+25+1.5,2) #sensors are 1.5cm in front of wheels
+                    last_val_middle = round(x-cm+25-8.38,2) #sensors are 83.8mm behind wheels
                     print("Distance at step, sensor 1: ", last_val_middle, "cm")
                 for index,i in enumerate(rising_edge2):
                     x=(rising_edge2[index]+falling_edge2[index])/(2*straightsteps)
                     middle_edge2.append(x)
-                    last_val_middle2 = round(x-cm+25+1.5,2) # sensors are 1.5cm in front of wheels
+                    last_val_middle2 = round(x-cm+25-8.38,2) #sensors are 83.8mm behind wheels
                     print("Distance at step, sensor 2: ", last_val_middle2, "cm")
                 last_val_middle_avg = round((last_val_middle + last_val_middle2) / 2,2)
                 if last_val_middle_avg != 0 and last_val_middle2 != 0:
                     diffvals = last_val_middle - last_val_middle2
                 else:
                     diffvals = 0
-                last_tiltangle_internal=-1*round((360/(2*3.14159))*math.atan(diffvals/9.2),1) # 9.2cm is the horizontal distance between the two sensors
+                last_tiltangle_internal=-1*round((360/(2*3.14159))*math.atan(diffvals/6.93),1) # 69.3mm is the horizontal distance between the two sensors
                 last_tiltangle_internal += 2.5 # add 2.5 degrees right offset, sensors arent perfectly aligned
                 if t_correction == True and abs(last_tiltangle_internal) >= 1:
                     last_tiltangle = last_tiltangle_internal
@@ -570,7 +570,7 @@ try:
     rising_edge = []
     falling_edge = []
     run_tcs = False
-    tcsensor = tcs34725.TCS34725(i2c)
+    tcsensor = tcs34725.TCS34725(i2c2)
     tcsensor.integration_time(2.4)  # Set integration time to 2.4 ms
     tcsensor.gain(4)  # Set gain to 4x
     print("TCS Sensor 1 ID: ",tcsensor.sensor_id())  # Print sensor ID to verify connection
@@ -580,7 +580,7 @@ except Exception as e:
 try:
     rising_edge2 = []
     falling_edge2 = []
-    tcsensor2 = tcs34725.TCS34725(i2c2)
+    tcsensor2 = tcs34725.TCS34725(i2c)
     tcsensor2.integration_time(2.4)  # Set integration time to 2.4 ms
     tcsensor2.gain(4)  # Set gain to 4x
     print("TCS Sensor 2 ID: ",tcsensor2.sensor_id())  # Print sensor ID to verify connection
