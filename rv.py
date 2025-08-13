@@ -12,7 +12,7 @@ turnSpeedDefault = 90 #90 #120
 maxstraightSpeed = 145 #100 #145
 
 # TURN VARS
-lturnsteps = 11.909
+lturnsteps = 14.111
 rturnsteps = lturnsteps 
 
 commands="""
