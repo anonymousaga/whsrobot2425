@@ -187,9 +187,8 @@ if True: # define all functions
                 else:
                     diffvals = 0
                 last_tiltangle_internal=-1*round((360/(2*3.14159))*math.atan(diffvals/6.93),1) # 69.3mm is the horizontal distance between the two sensors
-                last_tiltangle_internal += 2.5 # add 2.5 degrees right offset, sensors arent perfectly aligned
                 if t_correction == True and abs(last_tiltangle_internal) >= 1:
-                    last_tiltangle = last_tiltangle_internal
+                    last_tiltangle = last_tiltangle_internal + 2.5  # add 2.5 degrees right offset, sensors arent perfectly aligned
                     print(f'Tilt adjust: {last_tiltangle:.0f}deg')
                 else:
                     last_tiltangle_internal = 0
