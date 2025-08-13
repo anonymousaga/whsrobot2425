@@ -10,7 +10,7 @@ from time import sleep, ticks_ms, sleep_us, time
 from math import sqrt
 from sys import exit
 import _thread
-import tcs34725
+
 
 # initialize variables to defaults if they dont exist
 silent = False
@@ -20,6 +20,7 @@ turnSpeedDefault=80
 maxstraightSpeed=150
 lturnsteps = 14.1
 rturnsteps = lturnsteps
+tcsImport = True
 from rv import * #robot vars
 
 # DO NOT EDIT THESE DURING COMPETITION
@@ -196,7 +197,7 @@ if True: # define all functions
                     if abs(last_val_middle_avg) > .1:
                         print(f'Straight adjust: {last_val_middle_avg:.1f}cm')
                         if ending==True:
-                            s(last_val_middle_avg-8,s_correction=False,t_correction=False) # dowel is 8cm in front of wheels
+                            s(last_val_middle_avg+12,s_correction=False,t_correction=False) # dowel is 12cm behind wheels
                         else:
                             s(last_val_middle_avg,s_correction=False,t_correction=False)
                 #print("diffvals ",diffvals)
@@ -486,10 +487,10 @@ if True: # define all functions
         else:
             undervolt=False
         try:
-            display2.fill_rect(0, 0,130, 15, 0) # black out wait message
-            display2.text(voltagestr, 0, 0, 1)
+            display2.fill_rect(0, 45,130, 70, 0) 
+            display2.text(voltagestr, 0, 45, 1)
             if undervolt == True:
-                display2.text('LOW!!!!', 70, 0, 1)
+                display2.text('LOW!!!!', 75, 45, 1)
             display2.show()
         except:
             pass
@@ -508,7 +509,6 @@ print("")
 #    saccel_delay = 0.612
 #elif saccel_delay < 0.1:
 #    saccel_delay = 0.198
-
 
 command0,command1, command2, command3, command4, command5, command6, command7, command8, command9 = [0,1,2,3,4,5,6,7,8,9]
 del command0,command1, command2, command3, command4, command5, command6, command7, command8, command9
@@ -560,6 +560,17 @@ try:
 except:
     print("I2C OLED2 NOT WORKING!")
 
+if tcsImport == True:
+    import tcs34725
+    try:
+        display2.text("YES ColorImport", 0, 30, 1)
+    except:
+        pass
+else:
+    try:
+        display2.text("NO ColorImport", 0, 30, 1)
+    except:
+        pass
 
 try:
     stepcount = 0
@@ -571,8 +582,18 @@ try:
     tcsensor.integration_time(2.4)  # Set integration time to 2.4 ms
     tcsensor.gain(4)  # Set gain to 4x
     print("TCS Sensor 1 ID: ",tcsensor.sensor_id())  # Print sensor ID to verify connection
+    try:
+        display2.text("Color left good", 0, 0, 1)
+        display2.show()
+    except:
+        pass
 except Exception as e:
     print("TCS34725 Sensor 1 not found or not working! ",e)
+    try:
+        display2.text("Color left FAIL", 0, 0, 1)
+        display2.show()
+    except:
+        pass
 
 try:
     rising_edge2 = []
@@ -581,8 +602,18 @@ try:
     tcsensor2.integration_time(2.4)  # Set integration time to 2.4 ms
     tcsensor2.gain(4)  # Set gain to 4x
     print("TCS Sensor 2 ID: ",tcsensor2.sensor_id())  # Print sensor ID to verify connection
+    try:
+        display2.text("Color right good", 0, 15, 1)
+        display2.show()
+    except:
+        pass
 except Exception as e:
     print("TCS34725 Sensor 2 not found or not working! ",e)
+    try:
+        display2.text("Color right FAIL", 0, 15, 1)
+        display2.show()
+    except:
+        pass
 command_number = 0
 
 
