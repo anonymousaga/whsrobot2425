@@ -18,7 +18,7 @@ targetTime = 60
 saccel = 4.0
 turnSpeedDefault=95
 maxstraightSpeed=145
-lturnsteps = 11.9
+lturnsteps = 14.1
 rturnsteps = lturnsteps
 from rv import * #robot vars
 
