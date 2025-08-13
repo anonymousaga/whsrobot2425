@@ -13,7 +13,7 @@ maxstraightSpeed = 200 #100 #200
 # TURN VARS
 lturnsteps = 14.066
 rturnsteps = lturnsteps 
-tcs_import = True
+tcsImport = True
 
 commands="""
 s25
