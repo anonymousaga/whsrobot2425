@@ -209,6 +209,7 @@ if True: # define all functions
 
 
     def run_array(arr):
+        global command_number
         commandsLength = len(arr)
         for index, i in enumerate(arr):
             command_number = index
@@ -436,7 +437,7 @@ if True: # define all functions
             i = arr[index]
             if i[0]==0:
                 cm = abs(i[1])
-                if cm > 0 or straightSpeed < backwardsMaxSpeed:
+                if i[1] > 0 or straightSpeed < backwardsMaxSpeed:
                     # extra time for acceleration
                     timeLeft += straightETA(cm, straightSpeed, saccel)
                 else:
