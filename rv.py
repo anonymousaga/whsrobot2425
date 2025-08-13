@@ -7,55 +7,13 @@ targetTime = 60
 
 # ACCEL VARS
 # SPEED VARS in cm/s
-saccel = 4.1 #4.15 #5.45
-turnSpeedDefault = 90 #90 #120
-maxstraightSpeed = 145 #100 #145
+saccel = 4.1 #4.0 #5.4
+maxstraightSpeed = 150 #100 #150
 
 # TURN VARS
-lturnsteps = 14.111
+lturnsteps = 14.072
 rturnsteps = lturnsteps 
 
 commands="""
 s25
-"""
-
-commands4 = """
-r
-r
-r
-r
-r
-r
-r
-r
-r
-r
-r
-r
-"""
-
-commands4= """
-l
-l
-l
-l
-l
-l
-l
-l
-l
-l
-l
-l
-"""
-
-commands5= """
-u
-u
-u
-u
-u
-u
-u
-u
 """

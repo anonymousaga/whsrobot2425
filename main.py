@@ -16,8 +16,8 @@ import tcs34725
 silent = False
 targetTime = 60
 saccel = 4.0
-turnSpeedDefault=95
-maxstraightSpeed=145
+turnSpeedDefault=80
+maxstraightSpeed=150
 lturnsteps = 14.1
 rturnsteps = lturnsteps
 from rv import * #robot vars
@@ -27,9 +27,7 @@ startTimeOffset = 0 # in seconds;  Negative means to decrease the amount of time
 speed_steps_ratio = 0.04961
 straightsteps = 90.783
 saccel_initial = saccel
-taccel = saccel - 0.2
-if taccel < 3.8:
-    taccel = 3.8
+taccel = 4.33
 minstraightSpeed = 3
 slowSpeed = 50
 backwardsMaxSpeed = maxstraightSpeed*0.6
