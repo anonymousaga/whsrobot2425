@@ -572,16 +572,16 @@ try:
     tcsensor = tcs34725.TCS34725(i2c2)
     tcsensor.integration_time(2.4)  # Set integration time to 2.4 ms
     tcsensor.gain(4)  # Set gain to 4x
-    print("TCS Sensor 1 ID: ",tcsensor.sensor_id())  # Print sensor ID to verify connection
+    print("TCS Sensor 1 (right) ID: ",tcsensor.sensor_id())  # Print sensor ID to verify connection
     try:
-        display2.text("Color left good", 0, 0, 1)
+        display2.text("Color right good", 0, 0, 1)
         display2.show()
     except:
         pass
 except Exception as e:
-    print("TCS34725 Sensor 1 not found or not working! ",e)
+    print("TCS34725 Sensor 1 (right) not found or not working! ",e)
     try:
-        display2.text("Color left FAIL", 0, 0, 1)
+        display2.text("Color right FAIL", 0, 0, 1)
         display2.show()
     except:
         pass
@@ -592,16 +592,16 @@ try:
     tcsensor2 = tcs34725.TCS34725(i2c)
     tcsensor2.integration_time(2.4)  # Set integration time to 2.4 ms
     tcsensor2.gain(4)  # Set gain to 4x
-    print("TCS Sensor 2 ID: ",tcsensor2.sensor_id())  # Print sensor ID to verify connection
+    print("TCS Sensor 2 (left) ID: ",tcsensor2.sensor_id())  # Print sensor ID to verify connection
     try:
-        display2.text("Color right good", 0, 15, 1)
+        display2.text("Color left good", 0, 15, 1)
         display2.show()
     except:
         pass
 except Exception as e:
-    print("TCS34725 Sensor 2 not found or not working! ",e)
+    print("TCS34725 Sensor 2 (left) not found or not working! ",e)
     try:
-        display2.text("Color right FAIL", 0, 15, 1)
+        display2.text("Color left FAIL", 0, 15, 1)
         display2.show()
     except:
         pass
