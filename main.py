@@ -16,7 +16,6 @@ import tcs34725
 # initialize variables to defaults if they dont exist
 silent = False
 targetTime = 60
-saccel = 4.0
 turnSpeedDefault=80
 maxstraightSpeed=200
 lturnsteps = 14.1
@@ -28,14 +27,13 @@ from rv import * #robot vars
 startTimeOffset = 0 # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
 speed_steps_ratio = 0.04961
 straightsteps = 90.783
-saccel_initial = saccel
-taccel = 4.33
+taccel = 3.95
 minstraightSpeed = 3
 slowSpeed = 50
 backwardsMaxSpeed = maxstraightSpeed#*0.6
 tmc_uart_en = True
 spreadCycleEn = False
-currentmA = 1200 # combined current for both motors
+currentmA = 725 # combined current for both motors
 ending_led_period = 0.75 # how long before finish to turn off led at end
 
 from rv import * #robot vars
@@ -70,6 +68,21 @@ if True: # define all functions
 
     def calcS(speedy):
         return round(((1020000/straightsteps)/speedy) - 10)
+    
+    def calcAccel(speed):
+        # 25 cm/s --> 3.85 accel
+        # 100 cm/s --> 4.95 accel
+        speedMIN = 25
+        speedMAX = 100 
+        accelMIN = 3.85
+        accelMAX = 4.95
+
+        accel = accelMIN + ((speed - speedMIN) * ((accelMAX - accelMIN) / (speedMAX - speedMIN)))
+        if accel < accelMIN:
+            accel = accelMIN
+        elif accel > accelMAX:
+            accel = accelMAX
+        return round(accel,2)
 
     def s(cm, ending=False, s_correction=True,t_correction=True, slow=False):
         global command_number
@@ -106,7 +119,7 @@ if True: # define all functions
             dirfront(dirPin2)
         steps = round(cm*straightsteps)
         if command_number == 0:
-            saccel_literal = saccel_initial
+            saccel_literal = saccel + 0 # use same acceleration for first command
         else:
             saccel_literal = saccel
         saccel_literal = 25000/saccel_literal
@@ -454,6 +467,7 @@ if True: # define all functions
 
     def AdjustSpeedTime(targetTimeFunc, arr, pos):
         global straightSpeed
+        global saccel
         errorTime = 100
         countTries = 0
         while errorTime > 0.05 and countTries <= 5:
@@ -467,6 +481,7 @@ if True: # define all functions
                 straightSpeed = maxstraightSpeed
             if straightSpeed < minstraightSpeed:
                 straightSpeed = minstraightSpeed
+        saccel = calcAccel(straightSpeed)
 
 
     def AdjustSpeedTimeRealTime():
@@ -506,18 +521,13 @@ print("")
 print("")
 print("")
 
-#saccel_delay = round(0.00002909/((saccel)**3) + 0.041, 3)
-#if saccel_delay > 0.8:
-#    saccel_delay = 0.612
-#elif saccel_delay < 0.1:
-#    saccel_delay = 0.198
 
 command0,command1, command2, command3, command4, command5, command6, command7, command8, command9 = [0,1,2,3,4,5,6,7,8,9]
 del command0,command1, command2, command3, command4, command5, command6, command7, command8, command9
 straightSpeed = (minstraightSpeed+maxstraightSpeed)/2
 turnTime = 0.0035
 taccel_delay = 0.25
-
+saccel = 0
 led = Pin(25, Pin.OUT)
 step_pin = Pin(14, Pin.OUT)
 dirPin1 = Pin(11, Pin.OUT)

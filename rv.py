@@ -5,9 +5,7 @@ silent = True
 
 targetTime = 60
 
-# ACCEL VARS
 # SPEED VARS in cm/s
-saccel = 4.2 #4.0 #5.2
 maxstraightSpeed = 200 #100 #200
 
 # TURN VARS
