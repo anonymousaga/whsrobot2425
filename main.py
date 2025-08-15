@@ -155,7 +155,7 @@ if True: # define all functions
         except:
             pass
         if ending==True:
-            Timer(-1).init(mode=Timer.ONE_SHOT, period=int((straightETA(cm, straightSpeed, saccel)-ending_led_period)*1000), callback=ending_led)
+            Timer(-1).init(mode=Timer.ONE_SHOT, period=int((straightETA(cm, straightSpeed)-ending_led_period)*1000), callback=ending_led)
         range2=range(iAtEnd-1, 2+steps-iAtEnd)
         range3=range((-iAtEnd)+2, 0)
         if s_correction == True or t_correction == True:
@@ -391,7 +391,7 @@ if True: # define all functions
         #print("turnTime: ",turnTime)
 
 
-    def straightETA(cm_dist,speed,accel): # accel is unused for now
+    def straightETA(cm_dist,speed):
         return cm_dist/speed + 0.43 + 0.00483546*(speed+30)
 
     def compileCommands(commandvar):
@@ -451,11 +451,9 @@ if True: # define all functions
             if i[0]==0:
                 cm = abs(i[1])
                 if i[1] > 0 or straightSpeed < backwardsMaxSpeed:
-                    # extra time for acceleration
-                    timeLeft += straightETA(cm, straightSpeed, saccel)
+                    timeLeft += straightETA(cm, straightSpeed)
                 else:
-                    # extra time for acceleration
-                    timeLeft += straightETA(cm, backwardsMaxSpeed, saccel)
+                    timeLeft += straightETA(cm, backwardsMaxSpeed)
             elif i[0]==1:
                 timeLeft +=  (i[1])*turnTime + taccel_delay
 
