@@ -26,13 +26,13 @@ from rv import *  # robot vars
 startTimeOffset = 0  # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
 speed_steps_ratio = 0.04961
 straightsteps = 90.783
-taccel = 3.85
+taccel = 4.6
 minstraightSpeed = 3
 slowSpeed = 50
-backwardsMaxSpeed = maxstraightSpeed * 0.75
+backwardsMaxSpeed = maxstraightSpeed
 tmc_uart_en = True
 spreadCycleEn = False
-currentmA = 1000  # combined current for both motors
+currentmA = 725  # combined current for both motors
 ending_led_period = 0.75  # how long before finish to turn off led at end
 
 from rv import *  # robot vars
@@ -66,14 +66,14 @@ if True:  # define all functions
         led.off()
 
     def calcS(speedy):
-        return round(((1020000 / straightsteps) / speedy) - 10)
+        return int((1020000 / (straightsteps * speedy)) - 10)
 
     def calcAccel(speed):
         # linear calibration, each min & max correlates to the other
-        speedMIN = 25
+        speedMIN = 20
         speedMAX = 100
-        accelMIN = 3.85
-        accelMAX = 4.65
+        accelMIN = 4.2
+        accelMAX = 5.8
 
         accel = accelMIN + ((speed - speedMIN) * ((accelMAX - accelMIN) / (speedMAX - speedMIN)))
         if accel < accelMIN:
@@ -130,12 +130,8 @@ if True:  # define all functions
         iAtEndinitial = iAtEnd
         presetDelay = calcS(straightSpeed)
         gc.collect()
-        if saccel > 4.4:
-            offsetval = 3
-        else:
-            offsetval = 0
         for i in range(1, iAtEndinitial):
-            delayi = int(calcS(.4 * saccel * sqrt(i + offsetval)))
+            delayi = calcS(.3 * saccel * sqrt(i + 2))
             if delayi < presetDelay:
                 iAtEnd = i
                 break
@@ -147,7 +143,7 @@ if True:  # define all functions
             print("iAtEnd ", iAtEnd)
             print("len(delay) ", len(delay))
         try:
-            display.text('ACCEL%: ' + str(round((100 * iAtEnd) / (steps / 2))), 0, 45, 1)
+            display.text('ACCEL%: ' + str(int((100 * iAtEnd) / (steps / 2))), 0, 45, 1)
             display.show()
         except:
             pass
@@ -389,7 +385,7 @@ if True:  # define all functions
         presetDelay = calcS(turnSpeed)
         gc.collect()
         for i in range(1, iAtEndinitial):
-            delayi = int(calcS(.4 * taccel * sqrt(i)))
+            delayi = calcS(.3 * taccel * sqrt(i + 2))
             if delayi < presetDelay:
                 iAtEnd = i
                 break
