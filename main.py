@@ -69,12 +69,11 @@ if True: # define all functions
         return round(((1020000/straightsteps)/speedy) - 10)
     
     def calcAccel(speed):
-        # 25 cm/s --> 3.85 accel
-        # 100 cm/s --> 4.85 accel
+        # linear calibration, each min & max correlates to the other
         speedMIN = 25
         speedMAX = 100 
         accelMIN = 3.85
-        accelMAX = 4.85
+        accelMAX = 4.7
 
         accel = accelMIN + ((speed - speedMIN) * ((accelMAX - accelMIN) / (speedMAX - speedMIN)))
         if accel < accelMIN:
