@@ -219,7 +219,7 @@ if True: # define all functions
                     last_tiltangle_internal=-1*round((360/(2*3.14159))*math.atan(diffvals/6.93),1) # 69.3mm is the horizontal distance between the two sensors
                     if abs(diffvals) < 5.5: # 5.5cm threshold
                         if t_correction == True and abs(last_tiltangle_internal) >= 1 and abs(last_tiltangle_internal) <= 20:
-                            last_tiltangle = last_tiltangle_internal + 2.5  # add 2.5 degrees right offset, sensors arent perfectly aligned
+                            last_tiltangle = last_tiltangle_internal # + 2.5  # add 2.5 degrees right offset, sensors arent perfectly aligned
                             print(f'Tilt adjust: {last_tiltangle:.0f}deg')
                             # enable this to change the turn angle for all future turns based on the tilt
                             if False: #last_turnangle != 0:
