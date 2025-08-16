@@ -73,7 +73,7 @@ if True: # define all functions
         speedMIN = 25
         speedMAX = 100 
         accelMIN = 3.85
-        accelMAX = 4.7
+        accelMAX = 4.65
 
         accel = accelMIN + ((speed - speedMIN) * ((accelMAX - accelMIN) / (speedMAX - speedMIN)))
         if accel < accelMIN:
@@ -100,6 +100,7 @@ if True: # define all functions
         if slow == True and straightSpeed > slowSpeed:
             straightSpeed = slowSpeed
         print("STRAIGHT")
+        saccel = calcAccel(straightSpeed)
         print(f'CM: {cm:.0f}, SPEED: {straightSpeed:.0f}, SACCEL: {saccel}')
         try:
             display.fill(0)
@@ -501,7 +502,6 @@ if True: # define all functions
 
     def AdjustSpeedTime(targetTimeFunc, arr, pos):
         global straightSpeed
-        global saccel
         errorTime = 100
         countTries = 0
         while errorTime > 0.05 and countTries <= 5:
@@ -515,7 +515,6 @@ if True: # define all functions
                 straightSpeed = maxstraightSpeed
             if straightSpeed < minstraightSpeed:
                 straightSpeed = minstraightSpeed
-        saccel = calcAccel(straightSpeed)
 
 
     def AdjustSpeedTimeRealTime():
@@ -525,7 +524,6 @@ if True: # define all functions
         global targetTime
         targetTimeLeft = targetTime - ((ticks_ms() - startTime)/1000)
         AdjustSpeedTime(targetTimeLeft, commands, command_number)
-        # print((ticks_ms() - startTime))
 
 
     def lcd_voltage():
@@ -549,7 +547,6 @@ if True: # define all functions
 
 
 
-
 #_thread.start_new_thread(th_func, ())
 print("")
 print("")
@@ -561,18 +558,11 @@ del command0,command1, command2, command3, command4, command5, command6, command
 straightSpeed = (minstraightSpeed+maxstraightSpeed)/2
 turnTime = 0.0035
 taccel_delay = 0.25
-saccel = 0
 led = Pin(25, Pin.OUT)
 step_pin = Pin(14, Pin.OUT)
 dirPin1 = Pin(11, Pin.OUT)
 dirPin2 = Pin(15, Pin.OUT)
 Pin(23, Pin.OUT).high()  # Switch PSU to PWM from PSM for better ADC
-#saccel_delay = round(0.00002909/((saccel)**3) + 0.041, 3)
-#if saccel_delay > 0.8:
-#    saccel_delay = 0.612
-#elif saccel_delay < 0.1:
-#    saccel_delay = 0.198
-#print(f'Saccel Delay: {saccel_delay}')
 battNew = ADC(Pin(28, Pin.IN))
 if silent == True:
     buzzPin = Pin(21, Pin.OUT)  # unused pin to silence buzzer
