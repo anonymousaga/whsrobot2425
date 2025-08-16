@@ -133,7 +133,7 @@ if True: # define all functions
         iAtEndinitial = iAtEnd
         presetDelay = calcS(straightSpeed)
         gc.collect()
-        if saccel > 4.8:
+        if saccel > 4.4:
             offsetval = 3
         else:
             offsetval = 0
