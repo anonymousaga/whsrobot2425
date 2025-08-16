@@ -16,8 +16,8 @@ import tcs34725
 # initialize variables to defaults if they dont exist
 silent = False
 targetTime = 60
-turnSpeedDefault=80
-maxstraightSpeed=200
+turnSpeedDefault = 80
+maxstraightSpeed = 200
 turnsteps = 14.1
 tcsImport = True
 from rv import * #robot vars
@@ -99,7 +99,7 @@ if True: # define all functions
             straightSpeed = backwardsMaxSpeed
         if slow == True and straightSpeed > slowSpeed:
             straightSpeed = slowSpeed
-        print("STRAIGHT")
+        print("\nSTRAIGHT")
         saccel = calcAccel(straightSpeed)
         print(f'CM: {cm:.0f}, SPEED: {straightSpeed:.0f}, SACCEL: {saccel}')
         try:
@@ -120,10 +120,7 @@ if True: # define all functions
             dirfront(dirPin2)
         steps = round(cm*straightsteps)
         if command_number == 0:
-            saccel_literal = saccel + 0 # use same acceleration for first command
-        else:
-            saccel_literal = saccel
-        saccel_literal = 25000/saccel_literal
+            saccel += 0 # use same acceleration for first command
         delay = []
         stepcount = 0
         last_val_middle = 0
@@ -138,16 +135,15 @@ if True: # define all functions
         else:
             offsetval = 0
         for i in range(1, iAtEndinitial):
-            delayi = int(saccel_literal/sqrt(i+offsetval))-2
+            delayi = int(calcS(.4*saccel*sqrt(i+offsetval)))
             if delayi < presetDelay:
                 iAtEnd = i
                 break
             delay.append(delayi)
-        print(str(steps)+" steps")
         try:
             presetDelay = delay[iAtEnd-2]
-        except IndexError:
-            print("IndexError At presetdelay calc for straight")
+        except IndexError as e:
+            print("IndexError At presetdelay calc for straight: ",e)
             print("iAtEnd ",iAtEnd)
             print("len(delay) ",len(delay))
         try:
@@ -358,7 +354,6 @@ if True: # define all functions
         global last_tiltangle
         global last_turnangle
         startTurnTime = ticks_ms()
-        print("Tilt turn adjust: ",last_tiltangle)
         degreeval += last_tiltangle
         last_turnangle = degreeval
         last_tiltangle = 0  # reset tilt angle after turn
@@ -366,7 +361,9 @@ if True: # define all functions
             turnSpeed = slowSpeed
         else:
             turnSpeed=turnSpeedDefault
-        print("TURN")
+        print("\nTURN")
+        print(f'DEGREES: {degreeval:.0f}, SPEED: {turnSpeed:.0f}')
+        print("Tilt turn adjust: ",last_tiltangle)
         try:
             display.fill(0)
             display.text('TURN', 0, 0, 1)
@@ -387,23 +384,17 @@ if True: # define all functions
             turn_steps = turnsteps * 1 # use the same steps for both directions
         steps = round(degreeval*turn_steps)
 
-        taccel_literal = 25000/taccel
         delay = []
         iAtEnd = int(steps*.496)
         iAtEndinitial = iAtEnd
         presetDelay = calcS(turnSpeed)
         gc.collect()
-        if taccel > 4.5:
-            offsetval = 1
-        else:
-            offsetval = 0
         for i in range(1, iAtEndinitial):
-            delayi = int(taccel_literal/sqrt(i+offsetval))-2
+            delayi = int(calcS(.4*taccel*sqrt(i)))
             if delayi < presetDelay:
                 iAtEnd = i
                 break
             delay.append(delayi)
-        print(str(steps)+" steps")
         presetDelay = delay[iAtEnd-2]
         delay2 = delay[::-1]
 
@@ -411,21 +402,17 @@ if True: # define all functions
             presetDelay = delay2[0]
         for i in range(1, iAtEnd-1):
             step_pin.value(1)
-            # sleep_us(delay[i])
             step_pin.value(0)
             sleep_us(delay[i])
         for i in range(iAtEnd-1, 2+steps-iAtEnd):
             step_pin.value(1)
-            # sleep_us(presetDelay)
             step_pin.value(0)
             sleep_us(presetDelay)
         for i in range(1, 1+steps-(2+steps-iAtEnd)):
             step_pin.value(1)
-            # sleep_us(delay2[i])
             step_pin.value(0)
             sleep_us(delay2[i])
         turnTime = (((ticks_ms()-startTurnTime)/1000)-taccel_delay)/degreeval
-        #print("turnTime: ",turnTime)
 
 
     def straightETA(cm_dist,speed):
@@ -607,14 +594,14 @@ try: # all tcs34725 sensor 1 initialization code
     tcsensor = tcs34725.TCS34725(i2c)
     tcsensor.integration_time(2.4)  # Set integration time to 2.4 ms
     tcsensor.gain(4)  # Set gain to 4x
-    print("TCS Sensor 1 (right) ID: ",tcsensor.sensor_id())  # Print sensor ID to verify connection
+    print("\nTCS Sensor 1 (right) ID: ",tcsensor.sensor_id())  # Print sensor ID to verify connection
     try:
         display2.text("Color right good", 0, 0, 1)
         display2.show()
     except:
         pass
 except Exception as e:
-    print("TCS34725 Sensor 1 (right) not found or not working! ",e)
+    print("\nTCS34725 Sensor 1 (right) not found or not working! ",e)
     try:
         display2.text("Color right FAIL", 0, 0, 1)
         display2.show()
@@ -627,14 +614,14 @@ try: # all tcs34725 sensor 2 initialization code
     tcsensor2 = tcs34725.TCS34725(i2c2)
     tcsensor2.integration_time(2.4)  # Set integration time to 2.4 ms
     tcsensor2.gain(4)  # Set gain to 4x
-    print("TCS Sensor 2 (left) ID: ",tcsensor2.sensor_id())  # Print sensor ID to verify connection
+    print("\nTCS Sensor 2 (left) ID: ",tcsensor2.sensor_id())  # Print sensor ID to verify connection
     try:
         display2.text("Color left good", 0, 15, 1)
         display2.show()
     except:
         pass
 except Exception as e:
-    print("TCS34725 Sensor 2 (left) not found or not working! ",e)
+    print("\nTCS34725 Sensor 2 (left) not found or not working! ",e)
     try:
         display2.text("Color left FAIL", 0, 15, 1)
         display2.show()
@@ -675,7 +662,7 @@ try:
     startTime = ticks_ms() - 250
     AdjustSpeedTimeRealTime()
     voltage, undervoltage = lcd_voltage()
-    print(str(voltage) + " V")
+    print("\nBattery: " + str(voltage) + " V")
     try:
         display.text(f'Speed: {straightSpeed:.2f}', 0, 15, 1)
         display.text("WAIT 0.5 SEC", 0, 30, 1)
@@ -750,11 +737,11 @@ try:
     led.on()
     enPin1.low()
 
-    for i in range(1, 2000):
+    for i in range(1, 10):
         step_pin.value(1)
-        sleep_us(10)
+        sleep_us(25)
         step_pin.value(0)
-        sleep_us(10)
+        sleep_us(25)
     sleep(0.17)
     printlcd("Motors Enabled")
     display2.fill(0)
@@ -801,13 +788,6 @@ try:
     buzzer.freq(750)
     buzzer.duty_u16(1000)
     led.off()
-    '''
-    for i in range(1,18000):
-        step_pin.value(1)
-        sleep_us(1)
-        step_pin.value(0)
-        sleep_us(1)
-    '''
     enPin1.high()
     sleep(0.4)
     buzzer.duty_u16(0)
@@ -937,7 +917,7 @@ except KeyboardInterrupt:
     enPin1.high()
     speakerPin.low()
     buzzer.duty_u16(0)
-    print("Program Exited")
+    print("\nProgram Exited")
     if errorcommands == False: # leave the command error message on the display
         display.fill(0)
     display.text("Program Exited", 0, 0, 1)
