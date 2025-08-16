@@ -18,8 +18,7 @@ silent = False
 targetTime = 60
 turnSpeedDefault=80
 maxstraightSpeed=200
-lturnsteps = 14.1
-rturnsteps = lturnsteps
+turnsteps = 14.1
 tcsImport = True
 from rv import * #robot vars
 
@@ -27,7 +26,7 @@ from rv import * #robot vars
 startTimeOffset = 0 # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
 speed_steps_ratio = 0.04961
 straightsteps = 90.783
-taccel = 3.95
+taccel = 3.85
 minstraightSpeed = 3
 slowSpeed = 50
 backwardsMaxSpeed = maxstraightSpeed#*0.6
@@ -71,11 +70,11 @@ if True: # define all functions
     
     def calcAccel(speed):
         # 25 cm/s --> 3.85 accel
-        # 100 cm/s --> 4.95 accel
+        # 100 cm/s --> 4.85 accel
         speedMIN = 25
         speedMAX = 100 
         accelMIN = 3.85
-        accelMAX = 4.95
+        accelMAX = 4.85
 
         accel = accelMIN + ((speed - speedMIN) * ((accelMAX - accelMIN) / (speedMAX - speedMIN)))
         if accel < accelMIN:
@@ -90,10 +89,12 @@ if True: # define all functions
         global slowSpeed
         global last_val_middle
         global last_tiltangle
+        global last_turnangle
         global last_val_middle2
         global run_tcs
         global stepcount
         global speed_steps_ratio
+        global turnsteps
         AdjustSpeedTimeRealTime()  # timing function
         if cm < 0 and straightSpeed > backwardsMaxSpeed:
             straightSpeed = backwardsMaxSpeed
@@ -186,36 +187,48 @@ if True: # define all functions
                 diffvals = 0
                 last_val_middle = 0
                 last_val_middle2 = 0
-                for index,i in enumerate(rising_edge):
-                    x=(rising_edge[index]+falling_edge[index])/(2*straightsteps)
-                    middle_edge.append(x)
-                    last_val_middle = round(x-cm+25-8.38,2) #sensors are 83.8mm behind wheels
-                    print("Distance at step, sensor 1: ", last_val_middle, "cm")
-                for index,i in enumerate(rising_edge2):
-                    x=(rising_edge2[index]+falling_edge2[index])/(2*straightsteps)
-                    middle_edge2.append(x)
-                    last_val_middle2 = round(x-cm+25-8.38,2) #sensors are 83.8mm behind wheels
-                    print("Distance at step, sensor 2: ", last_val_middle2, "cm")
-                last_val_middle_avg = round((last_val_middle + last_val_middle2) / 2,2)
-                if last_val_middle_avg != 0 and last_val_middle2 != 0:
-                    diffvals = last_val_middle - last_val_middle2
-                else:
-                    diffvals = 0
-                last_tiltangle_internal=-1*round((360/(2*3.14159))*math.atan(diffvals/6.93),1) # 69.3mm is the horizontal distance between the two sensors
-                if t_correction == True and abs(last_tiltangle_internal) >= 1:
-                    last_tiltangle = last_tiltangle_internal + 2.5  # add 2.5 degrees right offset, sensors arent perfectly aligned
-                    print(f'Tilt adjust: {last_tiltangle:.0f}deg')
-                else:
-                    last_tiltangle_internal = 0
-                if s_correction == True:
-                    if abs(last_val_middle_avg) > .1:
-                        print(f'Straight adjust: {last_val_middle_avg:.1f}cm')
-                        if ending==True:
-                            s(last_val_middle_avg+12,s_correction=False,t_correction=False) # dowel is 12cm behind wheels
-                        else:
-                            s(last_val_middle_avg,s_correction=False,t_correction=False)
-                #print("diffvals ",diffvals)
+                if len(rising_edge) == len(falling_edge):
+                    for index,i in enumerate(rising_edge):
+                        x=(rising_edge[index]+falling_edge[index])/(2*straightsteps)
+                        middle_edge.append(x)
+                        last_val_middle = round(x-cm+25-8.38,2) #sensors are 83.8mm behind wheels
+                        print("Distance at step, sensor 1: ", last_val_middle, "cm")
+                if len(rising_edge2) == len(falling_edge2):
+                    for index,i in enumerate(rising_edge2):
+                        x=(rising_edge2[index]+falling_edge2[index])/(2*straightsteps)
+                        middle_edge2.append(x)
+                        last_val_middle2 = round(x-cm+25-8.38,2) #sensors are 83.8mm behind wheels
+                        print("Distance at step, sensor 2: ", last_val_middle2, "cm")
+                if len(middle_edge) == len(middle_edge2):
+                    last_val_middle_avg = round((last_val_middle + last_val_middle2) / 2,2)
+                    if last_val_middle_avg != 0 and last_val_middle2 != 0:
+                        diffvals = last_val_middle - last_val_middle2
+                    else:
+                        diffvals = 0
+                    last_tiltangle_internal=-1*round((360/(2*3.14159))*math.atan(diffvals/6.93),1) # 69.3mm is the horizontal distance between the two sensors
+                    if t_correction == True and abs(last_tiltangle_internal) >= 1 and abs(last_tiltangle_internal) <= 20:
+                        last_tiltangle = last_tiltangle_internal #+ 2.5  # add 2.5 degrees right offset, sensors arent perfectly aligned
+                        print(f'Tilt adjust: {last_tiltangle:.0f}deg')
+                        if last_turnangle != 0:
+                            turnsteps = round(turnsteps * (1 + (last_tiltangle/last_turnangle)),4)
+                            os.remove('wturnsteps.txt')
+                            with open('turnsteps.txt', 'a') as f:
+                                f.write("\nturnsteps = "+str(turnsteps))
+                            with open('wturnsteps.txt', 'w') as f:
+                                f.write("\nturnsteps = "+str(turnsteps))
+                            last_turnangle = 0  # reset turn angle after tilt correction
+                        last_tiltangle = 0 # no need to turn adjust now that it affects the turning steps directly
 
+                        
+                    else:
+                        last_tiltangle_internal = 0
+                    if s_correction == True:
+                        if abs(last_val_middle_avg) > .1:
+                            print(f'Straight adjust: {last_val_middle_avg:.1f}cm')
+                            if ending==True:
+                                s(last_val_middle_avg+12,s_correction=False,t_correction=False) # dowel is 12cm behind wheels
+                            else:
+                                s(last_val_middle_avg,s_correction=False,t_correction=False)
             
             except Exception as e:
                 print("Error parsing TCS34725 data: ", e)
@@ -321,9 +334,11 @@ if True: # define all functions
         global command_number
         global turnTime
         global last_tiltangle
+        global last_turnangle
         startTurnTime = ticks_ms()
         print("Tilt turn adjust: ",last_tiltangle)
         degreeval += last_tiltangle
+        last_turnangle = degreeval
         last_tiltangle = 0  # reset tilt angle after turn
         if slow == True:
             turnSpeed = slowSpeed
@@ -342,12 +357,12 @@ if True: # define all functions
         if degreeval < 0:
             dirfront(dirPin1)
             dirfront(dirPin2)
-            turn_steps = lturnsteps
+            turn_steps = turnsteps
             degreeval = -degreeval
         else:
             dirback(dirPin1)
             dirback(dirPin2)
-            turn_steps = rturnsteps
+            turn_steps = turnsteps * 1 # use the same steps for both directions
         steps = round(degreeval*turn_steps)
 
         taccel_literal = 25000/taccel
@@ -571,9 +586,10 @@ except:
     print("I2C OLED2 NOT WORKING!")
 
 
-try:
+try: # all tcs34725 sensor 1 initialization code
     stepcount = 0
     last_tiltangle = 0
+    last_turnangle = 0
     rising_edge = []
     falling_edge = []
     run_tcs = False
@@ -594,7 +610,7 @@ except Exception as e:
     except:
         pass
 
-try:
+try: # all tcs34725 sensor 2 initialization code
     rising_edge2 = []
     falling_edge2 = []
     tcsensor2 = tcs34725.TCS34725(i2c)
@@ -614,7 +630,7 @@ except Exception as e:
     except:
         pass
 
-try:
+try: # delete sensors if they are disabled
     if tcsImport == True:
         try:
             display2.text("YES ColorImport", 0, 30, 1)
@@ -625,6 +641,7 @@ try:
             display2.text("NO ColorImport", 0, 30, 1)
         except:
             pass
+        del tcs34725
         del tcsensor
         del tcsensor2
 except:
