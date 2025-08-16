@@ -29,7 +29,7 @@ straightsteps = 90.783
 taccel = 3.85
 minstraightSpeed = 3
 slowSpeed = 50
-backwardsMaxSpeed = maxstraightSpeed  # *0.6
+backwardsMaxSpeed = maxstraightSpeed * 0.75
 tmc_uart_en = True
 spreadCycleEn = False
 currentmA = 1000  # combined current for both motors
@@ -680,14 +680,14 @@ try:
     if tmc_uart_en == True:
         try:
             from TMC_2209_StepperDriver import *
-            tmc = TMC_2209(18, 19, 20, Pin(9), Pin(8), mtr_id=3)  # unused pins
+            tmc = TMC_2209(18, 19, 20, Pin(9), Pin(8), mtr_id=3)
             tmc.setLoglevel(Loglevel.debug)
             tmc.setVSense(False)
             tmc.setInterpolation(True)
             tmc.setMicrosteppingResolution(16)
             tmc.setInternalRSense(False)
             tmc.setIScaleAnalog(False)
-            tmc.setCurrent(currentmA, Vref=2.1)  # POTENTIOMETERS MUST BE AT MAX VREF (~2.3V)
+            tmc.setCurrent(currentmA, Vref=2.1)
             tmc.setSpreadCycle(spreadCycleEn)
             tmc.setDirection_reg(False)
         except Exception as e:
@@ -917,7 +917,8 @@ except KeyboardInterrupt:
     display.show()
     display2.fill(0)
     display2.show()
-# reset()
+
+
 # I dont know why he puit the song in but remember, A bird does not sing because it has somthing to say, it sings becuase it has a song.
 # Your critique, Izyan Syed
 # play this video, https://www.youtube.com/watch?v=dQw4w9WgXcQ
