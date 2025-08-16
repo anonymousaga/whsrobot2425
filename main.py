@@ -159,7 +159,18 @@ if True: # define all functions
         range2=range(iAtEnd-1, 2+steps-iAtEnd)
         range3=range((-iAtEnd)+2, 0)
         if s_correction == True or t_correction == True:
-            _thread.start_new_thread(tcs_scan, (None,))
+            try:
+                _thread.start_new_thread(tcs_scan, (None,))
+            except: #OSError: core1 in use
+                sleep(0.05)  # wait for thread to stop
+                try:
+                    _thread.start_new_thread(tcs_scan, (None,))
+                except:
+                    sleep(0.075)
+                    try:
+                        _thread.start_new_thread(tcs_scan, (None,))
+                    except:
+                        pass
         starttime2=ticks_ms()
         for i in range(1, iAtEnd-1):
             step_pin.value(1)
@@ -205,29 +216,41 @@ if True: # define all functions
                     else:
                         diffvals = 0
                     last_tiltangle_internal=-1*round((360/(2*3.14159))*math.atan(diffvals/6.93),1) # 69.3mm is the horizontal distance between the two sensors
-                    if t_correction == True and abs(last_tiltangle_internal) >= 1 and abs(last_tiltangle_internal) <= 20:
-                        last_tiltangle = last_tiltangle_internal #+ 2.5  # add 2.5 degrees right offset, sensors arent perfectly aligned
-                        print(f'Tilt adjust: {last_tiltangle:.0f}deg')
-                        if last_turnangle != 0:
-                            turnsteps = round(turnsteps * (1 + (last_tiltangle/last_turnangle)),4)
-                            os.remove('wturnsteps.txt')
-                            with open('turnsteps.txt', 'a') as f:
-                                f.write("\nturnsteps = "+str(turnsteps))
-                            with open('wturnsteps.txt', 'w') as f:
-                                f.write("\nturnsteps = "+str(turnsteps))
-                            last_turnangle = 0  # reset turn angle after tilt correction
-                        last_tiltangle = 0 # no need to turn adjust now that it affects the turning steps directly
+                    if abs(diffvals) < 5.5: # 5.5cm threshold
+                        if t_correction == True and abs(last_tiltangle_internal) >= 1 and abs(last_tiltangle_internal) <= 20:
+                            last_tiltangle = last_tiltangle_internal #+ 2.5  # add 2.5 degrees right offset, sensors arent perfectly aligned
+                            print(f'Tilt adjust: {last_tiltangle:.0f}deg')
+                            if last_turnangle != 0:
+                                # enable this to change the turn angle for all future turns based on the tilt
+                                #turnsteps = round(turnsteps * (1 + ((last_tiltangle/last_turnangle))),4)
+                                try:
+                                    os.remove('wturnsteps.txt')
+                                except:
+                                    pass
+                                try:
+                                    with open('turnsteps.txt', 'a') as f:
+                                        f.write("\nturnsteps = "+str(turnsteps))
+                                except:
+                                    pass
+                                try:
+                                    with open('wturnsteps.txt', 'w') as f:
+                                        f.write("\nturnsteps = "+str(turnsteps))
+                                except:
+                                    pass
+                                print("Turnsteps adjusted to: ",turnsteps)
+                                last_turnangle = 0  # reset turn angle after tilt correction
+                            last_tiltangle = 0 # no need to turn adjust now that it affects the turning steps directly
 
-                        
-                    else:
-                        last_tiltangle_internal = 0
-                    if s_correction == True:
-                        if abs(last_val_middle_avg) > .1:
-                            print(f'Straight adjust: {last_val_middle_avg:.1f}cm')
-                            if ending==True:
-                                s(last_val_middle_avg+12,s_correction=False,t_correction=False) # dowel is 12cm behind wheels
-                            else:
-                                s(last_val_middle_avg,s_correction=False,t_correction=False)
+                            
+                        else:
+                            last_tiltangle_internal = 0
+                        if s_correction == True:
+                            if abs(last_val_middle_avg) > 1: #1cm threshold
+                                print(f'Straight adjust: {last_val_middle_avg:.1f}cm')
+                                if ending==True:
+                                    s(last_val_middle_avg+12,s_correction=False,t_correction=False) # dowel is 12cm behind wheels
+                                else:
+                                    s(last_val_middle_avg,s_correction=False,t_correction=False)
             
             except Exception as e:
                 print("Error parsing TCS34725 data: ", e)
