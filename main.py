@@ -32,7 +32,7 @@ slowSpeed = 50
 backwardsMaxSpeed = maxstraightSpeed#*0.6
 tmc_uart_en = True
 spreadCycleEn = False
-currentmA = 725 # combined current for both motors
+currentmA = 1000 # combined current for both motors
 ending_led_period = 0.75 # how long before finish to turn off led at end
 
 from rv import * #robot vars
@@ -218,11 +218,11 @@ if True: # define all functions
                     last_tiltangle_internal=-1*round((360/(2*3.14159))*math.atan(diffvals/6.93),1) # 69.3mm is the horizontal distance between the two sensors
                     if abs(diffvals) < 5.5: # 5.5cm threshold
                         if t_correction == True and abs(last_tiltangle_internal) >= 1 and abs(last_tiltangle_internal) <= 20:
-                            last_tiltangle = last_tiltangle_internal #+ 2.5  # add 2.5 degrees right offset, sensors arent perfectly aligned
+                            last_tiltangle = last_tiltangle_internal + 2.5  # add 2.5 degrees right offset, sensors arent perfectly aligned
                             print(f'Tilt adjust: {last_tiltangle:.0f}deg')
-                            if last_turnangle != 0:
-                                # enable this to change the turn angle for all future turns based on the tilt
-                                #turnsteps = round(turnsteps * (1 + ((last_tiltangle/last_turnangle))),4)
+                            # enable this to change the turn angle for all future turns based on the tilt
+                            if False: #last_turnangle != 0:
+                                turnsteps = round(turnsteps * (1 + ((-last_tiltangle/last_turnangle))),4)
                                 try:
                                     os.remove('wturnsteps.txt')
                                 except:
@@ -239,8 +239,7 @@ if True: # define all functions
                                     pass
                                 print("Turnsteps adjusted to: ",turnsteps)
                                 last_turnangle = 0  # reset turn angle after tilt correction
-                            last_tiltangle = 0 # no need to turn adjust now that it affects the turning steps directly
-
+                                last_tiltangle = 0  # no need to tilt manually if adjusting turn steps
                             
                         else:
                             last_tiltangle_internal = 0
@@ -248,7 +247,7 @@ if True: # define all functions
                             if abs(last_val_middle_avg) > 1: #1cm threshold
                                 print(f'Straight adjust: {last_val_middle_avg:.1f}cm')
                                 if ending==True:
-                                    s(last_val_middle_avg+12,s_correction=False,t_correction=False) # dowel is 12cm behind wheels
+                                    s(last_val_middle_avg-4,s_correction=False,t_correction=False) # dowel is 4cm ahead of wheels
                                 else:
                                     s(last_val_middle_avg,s_correction=False,t_correction=False)
             
@@ -615,7 +614,7 @@ try: # all tcs34725 sensor 1 initialization code
     rising_edge = []
     falling_edge = []
     run_tcs = False
-    tcsensor = tcs34725.TCS34725(i2c2)
+    tcsensor = tcs34725.TCS34725(i2c)
     tcsensor.integration_time(2.4)  # Set integration time to 2.4 ms
     tcsensor.gain(4)  # Set gain to 4x
     print("TCS Sensor 1 (right) ID: ",tcsensor.sensor_id())  # Print sensor ID to verify connection
@@ -635,7 +634,7 @@ except Exception as e:
 try: # all tcs34725 sensor 2 initialization code
     rising_edge2 = []
     falling_edge2 = []
-    tcsensor2 = tcs34725.TCS34725(i2c)
+    tcsensor2 = tcs34725.TCS34725(i2c2)
     tcsensor2.integration_time(2.4)  # Set integration time to 2.4 ms
     tcsensor2.gain(4)  # Set gain to 4x
     print("TCS Sensor 2 (left) ID: ",tcsensor2.sensor_id())  # Print sensor ID to verify connection
