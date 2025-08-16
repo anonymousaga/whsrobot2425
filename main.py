@@ -118,7 +118,7 @@ if True:  # define all functions
         else:
             dirback(dirPin1)
             dirfront(dirPin2)
-        steps = round(cm * straightsteps)
+        steps = int(cm * straightsteps)
         if command_number == 0:
             saccel += 0  # use same acceleration for first command
         delay = []
@@ -533,7 +533,7 @@ command0, command1, command2, command3, command4, command5, command6, command7, 
 del command0, command1, command2, command3, command4, command5, command6, command7, command8, command9
 straightSpeed = (minstraightSpeed + maxstraightSpeed) / 2
 turnTime = 0.0035
-taccel_delay = 0.25
+taccel_delay = 0.35
 led = Pin(25, Pin.OUT)
 step_pin = Pin(14, Pin.OUT)
 dirPin1 = Pin(11, Pin.OUT)
