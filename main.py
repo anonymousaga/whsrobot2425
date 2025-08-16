@@ -20,7 +20,7 @@ turnSpeedDefault = 80
 maxstraightSpeed = 200
 turnsteps = 14.1
 tcsImport = True
-from rv import * #robot vars
+from rv import *  # robot vars
 
 # DO NOT EDIT THESE DURING COMPETITION
 startTimeOffset = 0  # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
@@ -35,7 +35,7 @@ spreadCycleEn = False
 currentmA = 1000  # combined current for both motors
 ending_led_period = 0.75  # how long before finish to turn off led at end
 
-from rv import * #robot vars
+from rv import *  # robot vars
 
 if True:  # define all functions
     def dirfront(dirPin):
@@ -66,7 +66,7 @@ if True:  # define all functions
         led.off()
 
     def calcS(speedy):
-        return round(((1020000/straightsteps)/speedy) - 10)
+        return round(((1020000 / straightsteps) / speedy) - 10)
 
     def calcAccel(speed):
         # linear calibration, each min & max correlates to the other
@@ -118,7 +118,7 @@ if True:  # define all functions
         else:
             dirback(dirPin1)
             dirfront(dirPin2)
-        steps = round(cm*straightsteps)
+        steps = round(cm * straightsteps)
         if command_number == 0:
             saccel += 0  # use same acceleration for first command
         delay = []
@@ -126,7 +126,7 @@ if True:  # define all functions
         last_val_middle = 0
         last_val_middle2 = 0
         last_tiltangle_internal = 0
-        iAtEnd = int(steps*.496)
+        iAtEnd = int(steps * .496)
         iAtEndinitial = iAtEnd
         presetDelay = calcS(straightSpeed)
         gc.collect()
@@ -135,26 +135,26 @@ if True:  # define all functions
         else:
             offsetval = 0
         for i in range(1, iAtEndinitial):
-            delayi = int(calcS(.4*saccel*sqrt(i+offsetval)))
+            delayi = int(calcS(.4 * saccel * sqrt(i + offsetval)))
             if delayi < presetDelay:
                 iAtEnd = i
                 break
             delay.append(delayi)
         try:
-            presetDelay = delay[iAtEnd-2]
+            presetDelay = delay[iAtEnd - 2]
         except IndexError as e:
             print("IndexError At presetdelay calc for straight: ", e)
             print("iAtEnd ", iAtEnd)
             print("len(delay) ", len(delay))
         try:
-            display.text('ACCEL%: ' + str(round((100*iAtEnd)/(steps/2))), 0, 45, 1)
+            display.text('ACCEL%: ' + str(round((100 * iAtEnd) / (steps / 2))), 0, 45, 1)
             display.show()
         except:
             pass
         if ending == True:
-            Timer(-1).init(mode=Timer.ONE_SHOT, period=int((straightETA(cm, straightSpeed)-ending_led_period)*1000), callback=ending_led)
-        range2 = range(iAtEnd-1, 2+steps-iAtEnd)
-        range3 = range((-iAtEnd)+2, 0)
+            Timer(-1).init(mode=Timer.ONE_SHOT, period=int((straightETA(cm, straightSpeed) - ending_led_period) * 1000), callback=ending_led)
+        range2 = range(iAtEnd - 1, 2 + steps - iAtEnd)
+        range3 = range((-iAtEnd) + 2, 0)
         if s_correction == True or t_correction == True:
             try:
                 _thread.start_new_thread(tcs_scan, (None,))
@@ -169,7 +169,7 @@ if True:  # define all functions
                     except:
                         pass
         starttime2 = ticks_ms()
-        for i in range(1, iAtEnd-1):
+        for i in range(1, iAtEnd - 1):
             step_pin.value(1)
             step_pin.value(0)
             stepcount += 1
@@ -196,15 +196,15 @@ if True:  # define all functions
                 last_val_middle2 = 0
                 if len(rising_edge) == len(falling_edge):
                     for index, i in enumerate(rising_edge):
-                        x = (rising_edge[index]+falling_edge[index])/(2*straightsteps)
+                        x = (rising_edge[index] + falling_edge[index]) / (2 * straightsteps)
                         middle_edge.append(x)
-                        last_val_middle = round(x-cm+25-8.38, 2)  # sensors are 83.8mm behind wheels
+                        last_val_middle = round(x - cm + 25 - 8.38, 2)  # sensors are 83.8mm behind wheels
                         print("Distance at step, sensor 1: ", last_val_middle, "cm")
                 if len(rising_edge2) == len(falling_edge2):
                     for index, i in enumerate(rising_edge2):
-                        x = (rising_edge2[index]+falling_edge2[index])/(2*straightsteps)
+                        x = (rising_edge2[index] + falling_edge2[index]) / (2 * straightsteps)
                         middle_edge2.append(x)
-                        last_val_middle2 = round(x-cm+25-8.38, 2)  # sensors are 83.8mm behind wheels
+                        last_val_middle2 = round(x - cm + 25 - 8.38, 2)  # sensors are 83.8mm behind wheels
                         print("Distance at step, sensor 2: ", last_val_middle2, "cm")
                 if len(middle_edge) == len(middle_edge2):
                     last_val_middle_avg = round((last_val_middle + last_val_middle2) / 2, 2)
@@ -212,26 +212,26 @@ if True:  # define all functions
                         diffvals = last_val_middle - last_val_middle2
                     else:
                         diffvals = 0
-                    last_tiltangle_internal = -1*round((360/(2*3.14159))*math.atan(diffvals/6.93), 1)  # 69.3mm is the horizontal distance between the two sensors
+                    last_tiltangle_internal = -1 * round((360 / (2 * 3.14159)) * math.atan(diffvals / 6.93), 1)  # 69.3mm is the horizontal distance between the two sensors
                     if abs(diffvals) < 5.5:  # 5.5cm threshold
                         if t_correction == True and abs(last_tiltangle_internal) >= 1 and abs(last_tiltangle_internal) <= 20:
                             last_tiltangle = last_tiltangle_internal  # + 2.5  # add 2.5 degrees right offset, sensors arent perfectly aligned
                             print(f'Tilt adjust: {last_tiltangle:.0f}deg')
                             # enable this to change the turn angle for all future turns based on the tilt
                             if False:  # last_turnangle != 0:
-                                turnsteps = round(turnsteps * (1 + ((-last_tiltangle/last_turnangle))), 4)
+                                turnsteps = round(turnsteps * (1 + ((-last_tiltangle / last_turnangle))), 4)
                                 try:
                                     os.remove('wturnsteps.txt')
                                 except:
                                     pass
                                 try:
                                     with open('turnsteps.txt', 'a') as f:
-                                        f.write("\nturnsteps = "+str(turnsteps))
+                                        f.write("\nturnsteps = " + str(turnsteps))
                                 except:
                                     pass
                                 try:
                                     with open('wturnsteps.txt', 'w') as f:
-                                        f.write("\nturnsteps = "+str(turnsteps))
+                                        f.write("\nturnsteps = " + str(turnsteps))
                                 except:
                                     pass
                                 print("Turnsteps adjusted to: ", turnsteps)
@@ -244,7 +244,7 @@ if True:  # define all functions
                             if abs(last_val_middle_avg) > 1:  # 1cm threshold
                                 print(f'Straight adjust: {last_val_middle_avg:.1f}cm')
                                 if ending == True:
-                                    s(last_val_middle_avg-4, s_correction=False, t_correction=False)  # dowel is 4cm ahead of wheels
+                                    s(last_val_middle_avg - 4, s_correction=False, t_correction=False)  # dowel is 4cm ahead of wheels
                                 else:
                                     s(last_val_middle_avg, s_correction=False, t_correction=False)
 
@@ -257,7 +257,7 @@ if True:  # define all functions
         for index, i in enumerate(arr):
             command_number = index
             if i[0] == 0:
-                if command_number == commandsLength-1:
+                if command_number == commandsLength - 1:
                     runTheLight = True
                 else:
                     runTheLight = False
@@ -381,40 +381,40 @@ if True:  # define all functions
             dirback(dirPin1)
             dirback(dirPin2)
             turn_steps = turnsteps * 1  # use the same steps for both directions
-        steps = round(degreeval*turn_steps)
+        steps = round(degreeval * turn_steps)
 
         delay = []
-        iAtEnd = int(steps*.496)
+        iAtEnd = int(steps * .496)
         iAtEndinitial = iAtEnd
         presetDelay = calcS(turnSpeed)
         gc.collect()
         for i in range(1, iAtEndinitial):
-            delayi = int(calcS(.4*taccel*sqrt(i)))
+            delayi = int(calcS(.4 * taccel * sqrt(i)))
             if delayi < presetDelay:
                 iAtEnd = i
                 break
             delay.append(delayi)
-        presetDelay = delay[iAtEnd-2]
+        presetDelay = delay[iAtEnd - 2]
         delay2 = delay[::-1]
 
         if presetDelay < delay2[0]:
             presetDelay = delay2[0]
-        for i in range(1, iAtEnd-1):
+        for i in range(1, iAtEnd - 1):
             step_pin.value(1)
             step_pin.value(0)
             sleep_us(delay[i])
-        for i in range(iAtEnd-1, 2+steps-iAtEnd):
+        for i in range(iAtEnd - 1, 2 + steps - iAtEnd):
             step_pin.value(1)
             step_pin.value(0)
             sleep_us(presetDelay)
-        for i in range(1, 1+steps-(2+steps-iAtEnd)):
+        for i in range(1, 1 + steps - (2 + steps - iAtEnd)):
             step_pin.value(1)
             step_pin.value(0)
             sleep_us(delay2[i])
-        turnTime = (((ticks_ms()-startTurnTime)/1000)-taccel_delay)/degreeval
+        turnTime = (((ticks_ms() - startTurnTime) / 1000) - taccel_delay) / degreeval
 
     def straightETA(cm_dist, speed):
-        return cm_dist/speed + 0.43 + 0.00483546*(speed+30)
+        return cm_dist / speed + 0.43 + 0.00483546 * (speed + 30)
 
     def compileCommands(commandvar):
         commandvar = commandvar.strip().splitlines()
@@ -450,7 +450,7 @@ if True:  # define all functions
                 elif x == "ld":
                     command2.append((1, -45, modifiers_numeric))
                 elif x.startswith("sd"):
-                    command2.append((0, float(x.strip("sd"))*1.4142, modifiers_numeric))  # square root of 2
+                    command2.append((0, float(x.strip("sd")) * 1.4142, modifiers_numeric))  # square root of 2
                 elif x.startswith("s"):
                     command2.append((0, float(x.strip("s")), modifiers_numeric))
                 elif x.startswith("t"):
@@ -476,7 +476,7 @@ if True:  # define all functions
                 else:
                     timeLeft += straightETA(cm, backwardsMaxSpeed)
             elif i[0] == 1:
-                timeLeft += (i[1])*turnTime + taccel_delay
+                timeLeft += (i[1]) * turnTime + taccel_delay
 
         # This is how it stops between commands
         timeLeft += 0.15 * (len(arr) - pos)
@@ -492,7 +492,7 @@ if True:  # define all functions
 
             timeLeft = calculateTimeLeft(arr, pos)
             errorTime = abs(timeLeft - targetTimeFunc)
-            errorFactor = timeLeft/targetTimeFunc
+            errorFactor = timeLeft / targetTimeFunc
             straightSpeed *= errorFactor
             if straightSpeed > maxstraightSpeed or targetTimeFunc <= 0:
                 straightSpeed = maxstraightSpeed
@@ -504,11 +504,11 @@ if True:  # define all functions
         global command_number
         global startTime
         global targetTime
-        targetTimeLeft = targetTime - ((ticks_ms() - startTime)/1000)
+        targetTimeLeft = targetTime - ((ticks_ms() - startTime) / 1000)
         AdjustSpeedTime(targetTimeLeft, commands, command_number)
 
     def lcd_voltage():
-        voltage = battNew.read_u16()/65536*3.33*6.2
+        voltage = battNew.read_u16() / 65536 * 3.33 * 6.2
         if voltage <= 0:
             voltage = 0
         voltagestr = f'{voltage:.2f} V'
@@ -535,7 +535,7 @@ print("")
 
 command0, command1, command2, command3, command4, command5, command6, command7, command8, command9 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 del command0, command1, command2, command3, command4, command5, command6, command7, command8, command9
-straightSpeed = (minstraightSpeed+maxstraightSpeed)/2
+straightSpeed = (minstraightSpeed + maxstraightSpeed) / 2
 turnTime = 0.0035
 taccel_delay = 0.25
 led = Pin(25, Pin.OUT)
@@ -754,7 +754,7 @@ try:
 
     del countled
     # motor time offset, in nanoseconds
-    startTime = ticks_ms() + startTimeOffset*(1000)
+    startTime = ticks_ms() + startTimeOffset * (1000)
     printlcd("Starting Course")
 
     # BUZZ (for fun)
@@ -768,7 +768,7 @@ try:
     run_array(commands)
     print("")
     printlcd(
-        f'Time: {(ticks_ms() - (startTime-startTimeOffset*1000))/1000:.2f}s')
+        f'Time: {(ticks_ms() - (startTime - startTimeOffset * 1000)) / 1000:.2f}s')
     try:
         display2.fill(0)
         display2.show()
