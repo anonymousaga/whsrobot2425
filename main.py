@@ -410,7 +410,7 @@ if True:  # define all functions
         turnTime = (((ticks_ms() - startTurnTime) / 1000) - taccel_delay) / degreeval
 
     def straightETA(cm_dist, speed):
-        return cm_dist / speed + 0.43 + 0.00483546 * (speed + 30)
+        return cm_dist / speed + 0.5 + 0.0055 * (speed + 30)
 
     def compileCommands(commandvar):
         commandvar = commandvar.strip().splitlines()
