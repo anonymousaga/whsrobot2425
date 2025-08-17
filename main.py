@@ -688,8 +688,11 @@ try:
             tmc.setDirection_reg(False)
         except Exception as e:
             printlcd("TMC UART FAILED")
-            display.text('NOT RUNNING!!!', 0, 30, 1)
-            display.show()
+            try:
+                display.text('NOT RUNNING!!!', 0, 30, 1)
+                display.show()
+            except:
+                pass
             buzzer.duty_u16(1000)
             for i in range(5):
                 led.on()
@@ -731,8 +734,11 @@ try:
         sleep_us(25)
     sleep(0.17)
     printlcd("Motors Enabled")
-    display2.fill(0)
-    display2.show()
+    try:
+        display2.fill(0)
+        display2.show()
+    except:
+        pass
 
     while True:
         if countled == 12500:
@@ -907,12 +913,21 @@ except KeyboardInterrupt:
     buzzer.duty_u16(0)
     print("\nProgram Exited")
     if errorcommands == False:  # leave the command error message on the display
-        display.fill(0)
-    display.text("Program Exited", 0, 0, 1)
-    display.text("Press RESET", 0, 15, 1)
-    display.show()
-    display2.fill(0)
-    display2.show()
+        try:
+            display.fill(0)
+        except:
+            pass
+    try:
+        display.text("Program Exited", 0, 0, 1)
+        display.text("Press RESET", 0, 15, 1)
+        display.show()
+    except:
+        pass
+    try:
+        display2.fill(0)
+        display2.show()
+    except:
+        pass
 
 
 # I dont know why he puit the song in but remember, A bird does not sing because it has somthing to say, it sings becuase it has a song.
