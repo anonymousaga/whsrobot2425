@@ -702,8 +702,6 @@ try:
                 buzzer.freq(800)
                 sleep(0.15)
             buzzer.duty_u16(0)
-            while True:
-                sleep(1)
 
     gc.collect()
 
