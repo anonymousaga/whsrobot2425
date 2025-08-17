@@ -756,6 +756,11 @@ try:
     # motor time offset, in nanoseconds
     startTime = ticks_ms() + startTimeOffset * (1000)
     printlcd("Starting Course")
+    try:
+        display2.fill(0)
+        display2.show()
+    except:
+        pass
 
     # BUZZ (for fun)
     buzzer.duty_u16(1000)
