@@ -14,26 +14,24 @@ import tcs34725
 
 
 # initialize variables to defaults if they dont exist
-silent = False
-targetTime = 60
-turnSpeedDefault = 80
-maxstraightSpeed = 200
+SILENT = False
+TARGETTIME = 60
+TURNSPEEDDEFAULT = 80
+MAXSTRAIGHTSPEED = 200
 turnsteps = 14.1
-tcsImport = True
+TCS_IMPORT = True
 from rv import *  # robot vars
 
 # DO NOT EDIT THESE DURING COMPETITION
-startTimeOffset = 0  # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
-speed_steps_ratio = 0.04961
-straightsteps = 90.783
-taccel = 4.6
-minstraightSpeed = 3
-slowSpeed = 50
-backwardsMaxSpeed = maxstraightSpeed
-tmc_uart_en = True
-spreadCycleEn = False
-currentmA = 725  # combined current for both motors
-ending_led_period = 0.75  # how long before finish to turn off led at end
+STARTTIMEOFFSET = 0  # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
+STRAIGHTSTEPS = 90.783
+TACCEL = 4.6
+MINSTRAIGHTSPEED = 3
+SLOWSPEED = 50
+BACKWARDSMAXSPEED = MAXSTRAIGHTSPEED
+TMC_UART_EN = True
+CURRENTMA = 725  # combined current for both motors
+ENDING_LED_PERIOD = 0.75  # how long before finish to turn off led at end
 
 from rv import *  # robot vars
 
@@ -66,7 +64,8 @@ if True:  # define all functions
         led.off()
 
     def calcS(speedy):
-        return int((1020000 / (straightsteps * speedy)) - 10)
+        # CALCS_CONSTANT is pre-calculated to save time
+        return int(CALCS_CONSTANT / speedy) - 10
 
     def calcAccel(speed):
         # linear calibration, each min & max correlates to the other
@@ -85,20 +84,18 @@ if True:  # define all functions
     def s(cm, ending=False, s_correction=True, t_correction=True, slow=False):
         global command_number
         global straightSpeed
-        global slowSpeed
         global last_val_middle
         global last_tiltangle
         global last_turnangle
         global last_val_middle2
         global run_tcs
         global stepcount
-        global speed_steps_ratio
         global turnsteps
         AdjustSpeedTimeRealTime()  # timing function
-        if cm < 0 and straightSpeed > backwardsMaxSpeed:
-            straightSpeed = backwardsMaxSpeed
-        if slow == True and straightSpeed > slowSpeed:
-            straightSpeed = slowSpeed
+        if cm < 0 and straightSpeed > BACKWARDSMAXSPEED:
+            straightSpeed = BACKWARDSMAXSPEED
+        if slow == True and straightSpeed > SLOWSPEED:
+            straightSpeed = SLOWSPEED
         print("\nSTRAIGHT")
         saccel = calcAccel(straightSpeed)
         print(f'CM: {cm:.0f}, SPEED: {straightSpeed:.0f}, SACCEL: {saccel}')
@@ -118,7 +115,7 @@ if True:  # define all functions
         else:
             dirback(dirPin1)
             dirfront(dirPin2)
-        steps = int(cm * straightsteps)
+        steps = int(cm * STRAIGHTSTEPS)
         if command_number == 0:
             saccel += 0  # use same acceleration for first command
         delay = []
@@ -148,7 +145,7 @@ if True:  # define all functions
         except:
             pass
         if ending == True:
-            Timer(-1).init(mode=Timer.ONE_SHOT, period=int((straightETA(cm, straightSpeed) - ending_led_period) * 1000), callback=ending_led)
+            Timer(-1).init(mode=Timer.ONE_SHOT, period=int((straightETA(cm, straightSpeed) - ENDING_LED_PERIOD) * 1000), callback=ending_led)
         range2 = range(iAtEnd - 1, 2 + steps - iAtEnd)
         range3 = range((-iAtEnd) + 2, 0)
         if s_correction == True or t_correction == True:
@@ -170,7 +167,7 @@ if True:  # define all functions
             step_pin.value(0)
             stepcount += 1
             sleep_us(delay[i])
-        for i in range2:
+        for _ in range2:
             step_pin.value(1)
             step_pin.value(0)
             stepcount += 1
@@ -192,13 +189,13 @@ if True:  # define all functions
                 last_val_middle2 = 0
                 if len(rising_edge) == len(falling_edge):
                     for index, i in enumerate(rising_edge):
-                        x = (rising_edge[index] + falling_edge[index]) / (2 * straightsteps)
+                        x = (rising_edge[index] + falling_edge[index]) / (2 * STRAIGHTSTEPS)
                         middle_edge.append(x)
                         last_val_middle = round(x - cm + 25 - 8.38, 2)  # sensors are 83.8mm behind wheels
                         print("Distance at step, sensor 1: ", last_val_middle, "cm")
                 if len(rising_edge2) == len(falling_edge2):
                     for index, i in enumerate(rising_edge2):
-                        x = (rising_edge2[index] + falling_edge2[index]) / (2 * straightsteps)
+                        x = (rising_edge2[index] + falling_edge2[index]) / (2 * STRAIGHTSTEPS)
                         middle_edge2.append(x)
                         last_val_middle2 = round(x - cm + 25 - 8.38, 2)  # sensors are 83.8mm behind wheels
                         print("Distance at step, sensor 2: ", last_val_middle2, "cm")
@@ -353,9 +350,9 @@ if True:  # define all functions
         last_turnangle = degreeval
         last_tiltangle = 0  # reset tilt angle after turn
         if slow == True:
-            turnSpeed = slowSpeed
+            turnSpeed = SLOWSPEED
         else:
-            turnSpeed = turnSpeedDefault
+            turnSpeed = TURNSPEEDDEFAULT
         print("\nTURN")
         print(f'DEGREES: {degreeval:.0f}, SPEED: {turnSpeed:.0f}')
         print("Tilt turn adjust: ", last_tiltangle)
@@ -385,7 +382,7 @@ if True:  # define all functions
         presetDelay = calcS(turnSpeed)
         gc.collect()
         for i in range(1, iAtEndinitial):
-            delayi = calcS(.3 * taccel * sqrt(i + 2))
+            delayi = calcS(.3 * TACCEL * sqrt(i + 2))
             if delayi < presetDelay:
                 iAtEnd = i
                 break
@@ -399,7 +396,7 @@ if True:  # define all functions
             step_pin.value(1)
             step_pin.value(0)
             sleep_us(delay[i])
-        for i in range(iAtEnd - 1, 2 + steps - iAtEnd):
+        for _ in range(iAtEnd - 1, 2 + steps - iAtEnd):
             step_pin.value(1)
             step_pin.value(0)
             sleep_us(presetDelay)
@@ -407,7 +404,7 @@ if True:  # define all functions
             step_pin.value(1)
             step_pin.value(0)
             sleep_us(delay2[i])
-        turnTime = (((ticks_ms() - startTurnTime) / 1000) - taccel_delay) / degreeval
+        turnTime = (((ticks_ms() - startTurnTime) / 1000) - TACCEL_DELAY) / degreeval
 
     def straightETA(cm_dist, speed):
         return cm_dist / speed + 0.5 + 0.0055 * (speed + 30)
@@ -467,12 +464,12 @@ if True:  # define all functions
             i = arr[index]
             if i[0] == 0:
                 cm = abs(i[1])
-                if i[1] > 0 or straightSpeed < backwardsMaxSpeed:
+                if i[1] > 0 or straightSpeed < BACKWARDSMAXSPEED:
                     timeLeft += straightETA(cm, straightSpeed)
                 else:
-                    timeLeft += straightETA(cm, backwardsMaxSpeed)
+                    timeLeft += straightETA(cm, BACKWARDSMAXSPEED)
             elif i[0] == 1:
-                timeLeft += (i[1]) * turnTime + taccel_delay
+                timeLeft += (i[1]) * turnTime + TACCEL_DELAY
 
         # This is how it stops between commands
         timeLeft += 0.15 * (len(arr) - pos)
@@ -490,17 +487,16 @@ if True:  # define all functions
             errorTime = abs(timeLeft - targetTimeFunc)
             errorFactor = timeLeft / targetTimeFunc
             straightSpeed *= errorFactor
-            if straightSpeed > maxstraightSpeed or targetTimeFunc <= 0:
-                straightSpeed = maxstraightSpeed
-            if straightSpeed < minstraightSpeed:
-                straightSpeed = minstraightSpeed
+            if straightSpeed > MAXSTRAIGHTSPEED or targetTimeFunc <= 0:
+                straightSpeed = MAXSTRAIGHTSPEED
+            if straightSpeed < MINSTRAIGHTSPEED:
+                straightSpeed = MINSTRAIGHTSPEED
 
     def AdjustSpeedTimeRealTime():
         global commands
         global command_number
         global startTime
-        global targetTime
-        targetTimeLeft = targetTime - ((ticks_ms() - startTime) / 1000)
+        targetTimeLeft = TARGETTIME - ((ticks_ms() - startTime) / 1000)
         AdjustSpeedTime(targetTimeLeft, commands, command_number)
 
     def lcd_voltage():
@@ -531,16 +527,17 @@ print("")
 
 command0, command1, command2, command3, command4, command5, command6, command7, command8, command9 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 del command0, command1, command2, command3, command4, command5, command6, command7, command8, command9
-straightSpeed = (minstraightSpeed + maxstraightSpeed) / 2
+straightSpeed = (MINSTRAIGHTSPEED + MAXSTRAIGHTSPEED) / 2
 turnTime = 0.0035
-taccel_delay = 0.35
+TACCEL_DELAY = 0.35
+CALCS_CONSTANT = round(1020000/STRAIGHTSTEPS,1)
 led = Pin(25, Pin.OUT)
 step_pin = Pin(14, Pin.OUT)
 dirPin1 = Pin(11, Pin.OUT)
 dirPin2 = Pin(15, Pin.OUT)
 Pin(23, Pin.OUT).high()  # Switch PSU to PWM from PSM for better ADC
 battNew = ADC(Pin(28, Pin.IN))
-if silent == True:
+if SILENT == True:
     buzzPin = Pin(21, Pin.OUT)  # unused pin to silence buzzer
 else:
     buzzPin = Pin(17, Pin.OUT)
@@ -618,7 +615,7 @@ except Exception as e:
         pass
 
 try:  # delete sensors if they are disabled
-    if tcsImport == True:
+    if TCS_IMPORT == True:
         try:
             display2.text("YES ColorImport", 0, 30, 1)
         except:
@@ -654,7 +651,7 @@ try:
     try:
         display.text(f'Speed: {straightSpeed:.2f}', 0, 15, 1)
         display.text("WAIT 0.5 SEC", 0, 30, 1)
-        display.text(f'Target: {targetTime}s', 0, 45, 1)
+        display.text(f'Target: {TARGETTIME}s', 0, 45, 1)
         display.show()
     except:
         pass
@@ -662,7 +659,7 @@ try:
     if undervoltage == True:
         print("LOW VOLTAGE!")
         buzzer.duty_u16(1000)
-        for i in range(3):
+        for _ in range(3):
             led.on()
             buzzer.freq(500)
             sleep(0.15)
@@ -673,7 +670,7 @@ try:
     del undervoltage
     del voltage
 
-    if tmc_uart_en == True:
+    if TMC_UART_EN == True:
         try:
             from TMC_2209_StepperDriver import *
             tmc = TMC_2209(18, 19, 20, Pin(9), Pin(8), mtr_id=3)
@@ -683,8 +680,8 @@ try:
             tmc.setMicrosteppingResolution(16)
             tmc.setInternalRSense(False)
             tmc.setIScaleAnalog(False)
-            tmc.setCurrent(currentmA, Vref=2.1)
-            tmc.setSpreadCycle(spreadCycleEn)
+            tmc.setCurrent(CURRENTMA, Vref=2.1)
+            tmc.setSpreadCycle(False)
             tmc.setDirection_reg(False)
         except Exception as e:
             printlcd("TMC UART FAILED")
@@ -694,7 +691,7 @@ try:
             except:
                 pass
             buzzer.duty_u16(1000)
-            for i in range(5):
+            for _ in range(5):
                 led.on()
                 buzzer.freq(400)
                 sleep(0.3)
@@ -725,7 +722,7 @@ try:
     led.on()
     enPin1.low()
 
-    for i in range(1, 10):
+    for _ in range(1, 10):
         step_pin.value(1)
         sleep_us(25)
         step_pin.value(0)
@@ -754,7 +751,7 @@ try:
 
     del countled
     # motor time offset, in nanoseconds
-    startTime = ticks_ms() + startTimeOffset * (1000)
+    startTime = ticks_ms() + STARTTIMEOFFSET * (1000)
     printlcd("Starting Course")
     try:
         display2.fill(0)
@@ -767,13 +764,13 @@ try:
     sleep(0.21)
     buzzer.duty_u16(0)
 
-    if silent == False:
+    if SILENT == False:
         speakerPin.high()
 
     run_array(commands)
     print("")
     printlcd(
-        f'Time: {(ticks_ms() - (startTime - startTimeOffset * 1000)) / 1000:.2f}s')
+        f'Time: {(ticks_ms() - (startTime - STARTTIMEOFFSET * 1000)) / 1000:.2f}s')
     try:
         display2.fill(0)
         display2.show()
@@ -788,7 +785,7 @@ try:
     sleep(0.4)
     buzzer.duty_u16(0)
     sleep(0.2)
-    if silent == False:
+    if SILENT == False:
         import random
         tones = {
             "B0": 31,
