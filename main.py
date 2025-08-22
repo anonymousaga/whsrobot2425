@@ -24,13 +24,13 @@ from rv import *  # robot vars
 
 # DO NOT EDIT THESE DURING COMPETITION
 STARTTIMEOFFSET = 0  # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
-STRAIGHTSTEPS = 90.783
+STRAIGHTSTEPS = 82.464
 TACCEL = 4.6
 MINSTRAIGHTSPEED = 3
 SLOWSPEED = 50
 BACKWARDSMAXSPEED = MAXSTRAIGHTSPEED
 TMC_UART_EN = True
-CURRENTMA = 725  # combined current for both motors
+CURRENTMA = 1000  # combined current for both motors
 ENDING_LED_PERIOD = 0.75  # how long before finish to turn off led at end
 
 from rv import *  # robot vars
@@ -72,7 +72,7 @@ if True:  # define all functions
         speedMIN = 20
         speedMAX = 100
         accelMIN = 4.2
-        accelMAX = 5.8
+        accelMAX = 5.56
 
         accel = accelMIN + ((speed - speedMIN) * ((accelMAX - accelMIN) / (speedMAX - speedMIN)))
         if accel < accelMIN:

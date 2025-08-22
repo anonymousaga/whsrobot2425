@@ -9,7 +9,7 @@ TARGETTIME = 60
 MAXSTRAIGHTSPEED = 200 #100 #200
 
 # TURN VARS
-turnsteps = 14.066
+turnsteps = 12.419
 TCS_IMPORT = True
 
 commands="""
