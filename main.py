@@ -32,6 +32,7 @@ BACKWARDSMAXSPEED = MAXSTRAIGHTSPEED
 TMC_UART_EN = True
 CURRENTMA = 725  # combined current for both motors
 ENDING_LED_PERIOD = 0.75  # how long before finish to turn off led at end
+TIMERDELAYOFFSET = 7  # microseconds to add to timer delay to account for the extra time pin switching takes in a normal loop
 
 from rv import *  # robot vars
 
@@ -81,7 +82,7 @@ if True:  # define all functions
             accel = accelMAX
         return round(accel, 2)
 
-    def s(cm, ending=False, s_correction=True, t_correction=True, slow=False):
+    def s(cm, ending=False, s_correction=False, t_correction=False, slow=False):
         global command_number
         global straightSpeed
         global last_val_middle
@@ -89,7 +90,8 @@ if True:  # define all functions
         global last_turnangle
         global last_val_middle2
         global run_tcs
-        global stepcount
+        global stepcount1
+        global stepcount2
         global turnsteps
         AdjustSpeedTimeRealTime()  # timing function
         if cm < 0 and straightSpeed > BACKWARDSMAXSPEED:
@@ -119,7 +121,8 @@ if True:  # define all functions
         if command_number == 0:
             saccel += 0  # use same acceleration for first command
         delay = []
-        stepcount = 0
+        stepcount1 = 0
+        stepcount2 = 0
         last_val_middle = 0
         last_val_middle2 = 0
         last_tiltangle_internal = 0
@@ -142,9 +145,9 @@ if True:  # define all functions
         if ending == True:
             Timer(-1).init(mode=Timer.ONE_SHOT, period=int((straightETA(cm, straightSpeed) - ENDING_LED_PERIOD) * 1000), callback=ending_led)
         range1 = range(1, iAtEnd - 1)
-        range2 = range(iAtEnd - 1, 2 + steps - iAtEnd)
+        range2 = steps - iAtEnd + 2
         range3 = range((-iAtEnd) + 2, 0)
-        if s_correction == True or t_correction == True:
+        if False: #s_correction == True or t_correction == True:
             try:
                 _thread.start_new_thread(tcs_scan, (None,))
             except:  # OSError: core1 in use
@@ -157,23 +160,92 @@ if True:  # define all functions
                         _thread.start_new_thread(tcs_scan, (None,))
                     except:
                         pass
+        # Create timer for stepPin1 pulses
+        freqspeed1=int(1000000//(presetDelay+TIMERDELAYOFFSET))  # +7 is the overhead time for the function call and pin toggling
+        freqspeed2=freqspeed1
+
+        start_stepping = False
+        def motor2movement(t=None):
+            global stepcount2
+            while start_stepping == False:
+                pass
+
+            for i in range1:
+                stepPin2.value(1)
+                stepPin2.value(0)
+                stepcount2 += 1
+                sleep_us(delay[i])
+                
+            # Start periodic timer with presetDelay microseconds
+            step_timer2.init(freq=freqspeed2, mode=Timer.PERIODIC, callback=step_pulse2)
+            
+
+            if True: #ALL TURNING CODE
+                step_bank_turn_2 = 2200
+                speedR = 50
+                delayR = []
+                delayGapR = (calcS(speedR) - presetDelay)/(step_bank_turn_2/2)
+                midPointSpeed = presetDelay + delayGapR * (step_bank_turn_2/4)
+                stepsreplaced = step_bank_turn_2 * (midPointSpeed / presetDelay)
+                range1R = range(0, int(step_bank_turn_2/2))
+                range2R = range(int(-step_bank_turn_2/2),0)
+                for i in range(0, int(step_bank_turn_2/2)+5):
+                    delayi = presetDelay + int(delayGapR * i)
+                    delayR.append(delayi)
+
+
+            print(stepcount2, range2-stepsreplaced)
+            # Wait for all steps to complete
+            while stepcount2 < range2-stepsreplaced:
+                
+                sleep_us(1)
+            # Stop timer
+            step_timer2.deinit()
+
+            for i in range1R:
+                stepPin2.value(1)
+                stepPin2.value(0)
+                stepcount2 += 1
+                sleep_us(delayR[i])
+            for i in range2R:
+                stepPin2.value(1)
+                stepPin2.value(0)
+                stepcount2 += 1
+                sleep_us(delayR[-i])
+
+            for i in range3:
+                stepPin2.value(1)
+                stepPin2.value(0)
+                stepcount2 += 1
+                sleep_us(delay[-i])
+
+        _thread.start_new_thread(motor2movement, (None,))
+        
         starttime2 = ticks_ms()
+        start_stepping = True
         for i in range1:
-            step_pin.value(1)
-            step_pin.value(0)
-            stepcount += 1
+            stepPin1.value(1)
+            stepPin1.value(0)
+            stepcount1 += 1
             sleep_us(delay[i])
-        for _ in range2:
-            step_pin.value(1)
-            step_pin.value(0)
-            stepcount += 1
-            sleep_us(presetDelay)
+            
+        # Start periodic timer with presetDelay microseconds
+        step_timer1.init(freq=freqspeed1, mode=Timer.PERIODIC, callback=step_pulse1)
+        
+        # Wait for all steps to complete
+        while stepcount1 < range2:
+            sleep_us(1)
+        # Stop timer
+        step_timer1.deinit()
+
         for i in range3:
-            step_pin.value(1)
-            step_pin.value(0)
-            stepcount += 1
+            stepPin1.value(1)
+            stepPin1.value(0)
+            stepcount1 += 1
             sleep_us(delay[-i])
         endtime2 = ticks_ms()
+        print("Total Steps: ", stepcount1)
+        print("Excpected steps: ", steps)
         print(f"Elapsed Time: {((endtime2 - starttime2) / 1000):.3f} seconds")
         run_tcs = False  # stop the tcs34725 sensor
         if True:  # all the tcs34725 sensors code
@@ -269,7 +341,8 @@ if True:  # define all functions
                 t(i[1], slow=slowvar)
 
     def tcs_scan(randomarg=None):
-        global stepcount
+        global stepcount1
+        global stepcount2
         global rising_edge
         global rising_edge2
         global tcsensor
@@ -299,7 +372,7 @@ if True:  # define all functions
                     if not is_high:
                         consecutive_high += 1
                     if consecutive_high >= 1:
-                        rising_edge.append(stepcount)
+                        rising_edge.append(stepcount1)
                         is_high = True
                         consecutive_high = 0
                     consecutive_low = 0
@@ -307,7 +380,7 @@ if True:  # define all functions
                     if is_high:
                         consecutive_low += 1
                     if consecutive_low >= 1:
-                        falling_edge.append(stepcount)
+                        falling_edge.append(stepcount1)
                         is_high = False
                         consecutive_low = 0
                     consecutive_high = 0
@@ -317,7 +390,7 @@ if True:  # define all functions
                     if not is_high2:
                         consecutive_high2 += 1
                     if consecutive_high2 >= 1:
-                        rising_edge2.append(stepcount)
+                        rising_edge2.append(stepcount2)
                         is_high2 = True
                         consecutive_high2 = 0
                     consecutive_low2 = 0
@@ -325,7 +398,7 @@ if True:  # define all functions
                     if is_high2:
                         consecutive_low2 += 1
                     if consecutive_low2 >= 1:
-                        falling_edge2.append(stepcount)
+                        falling_edge2.append(stepcount2)
                         is_high2 = False
                         consecutive_low2 = 0
                     consecutive_high2 = 0
@@ -389,16 +462,16 @@ if True:  # define all functions
         range3 = range((-iAtEnd) + 2, 0)
 
         for i in range1:
-            step_pin.value(1)
-            step_pin.value(0)
+            stepPin1.value(1)
+            stepPin1.value(0)
             sleep_us(delay[i])
         for _ in range2:
-            step_pin.value(1)
-            step_pin.value(0)
+            stepPin1.value(1)
+            stepPin1.value(0)
             sleep_us(presetDelay)
         for i in range3:
-            step_pin.value(1)
-            step_pin.value(0)
+            stepPin1.value(1)
+            stepPin1.value(0)
             sleep_us(delay[-i])
         turnTime = (((ticks_ms() - startTurnTime) / 1000) - TACCEL_DELAY) / degreeval
 
@@ -528,7 +601,8 @@ turnTime = 0.0035
 TACCEL_DELAY = 0.35
 CALCS_CONSTANT = round(1020000/STRAIGHTSTEPS,1)
 led = Pin("LED", Pin.OUT)
-step_pin = Pin(14, Pin.OUT)
+stepPin1 = Pin(14, Pin.OUT)
+stepPin2 = Pin(7, Pin.OUT)
 dirPin1 = Pin(11, Pin.OUT)
 dirPin2 = Pin(15, Pin.OUT)
 Pin(23, Pin.OUT).high()  # Switch PSU to PWM from PSM for better ADC
@@ -541,6 +615,19 @@ buzzPin.low()
 buzzer = PWM(buzzPin)
 buzzer.freq(1000)
 buzzer.duty_u16(0)
+
+step_timer1 = Timer(-1)
+step_timer2 = Timer(-1)
+def step_pulse1(t=None):
+    global stepcount1
+    stepPin1.value(1)
+    stepPin1.value(0) 
+    stepcount1 += 1
+def step_pulse2(t=None):
+    global stepcount2
+    stepPin2.value(1)
+    stepPin2.value(0) 
+    stepcount2 += 1
 
 speakerPin = Pin(6, Pin.OUT)
 speakerPin.low()
@@ -567,7 +654,8 @@ except:
 
 
 try:  # all tcs34725 sensor 1 initialization code
-    stepcount = 0
+    stepcount1 = 0
+    stepcount2 = 0
     last_tiltangle = 0
     last_turnangle = 0
     rising_edge = []
@@ -719,9 +807,9 @@ try:
     enPin1.low()
 
     for _ in range(1, 10):
-        step_pin.value(1)
+        stepPin1.value(1)
         sleep_us(25)
-        step_pin.value(0)
+        stepPin1.value(0)
         sleep_us(25)
     sleep(0.17)
     printlcd("Motors Enabled")
