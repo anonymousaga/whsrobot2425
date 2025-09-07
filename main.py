@@ -129,16 +129,11 @@ if True:  # define all functions
         gc.collect()
         for i in range(1, iAtEndinitial):
             delayi = calcS(.3 * saccel * sqrt(i + 2))
-            if delayi < presetDelay:
+            if delayi <= presetDelay:
                 iAtEnd = i
                 break
             delay.append(delayi)
-        try:
-            presetDelay = delay[iAtEnd - 2]
-        except IndexError as e:
-            print("IndexError At presetdelay calc for straight: ", e)
-            print("iAtEnd ", iAtEnd)
-            print("len(delay) ", len(delay))
+        presetDelay = delayi
         try:
             display.text('ACCEL%: ' + str(int((100 * iAtEnd) / (steps / 2))), 0, 45, 1)
             display.show()
@@ -146,6 +141,7 @@ if True:  # define all functions
             pass
         if ending == True:
             Timer(-1).init(mode=Timer.ONE_SHOT, period=int((straightETA(cm, straightSpeed) - ENDING_LED_PERIOD) * 1000), callback=ending_led)
+        range1 = range(1, iAtEnd - 1)
         range2 = range(iAtEnd - 1, 2 + steps - iAtEnd)
         range3 = range((-iAtEnd) + 2, 0)
         if s_correction == True or t_correction == True:
@@ -162,7 +158,7 @@ if True:  # define all functions
                     except:
                         pass
         starttime2 = ticks_ms()
-        for i in range(1, iAtEnd - 1):
+        for i in range1:
             step_pin.value(1)
             step_pin.value(0)
             stepcount += 1
@@ -383,27 +379,27 @@ if True:  # define all functions
         gc.collect()
         for i in range(1, iAtEndinitial):
             delayi = calcS(.3 * TACCEL * sqrt(i + 2))
-            if delayi < presetDelay:
+            if delayi <= presetDelay:
                 iAtEnd = i
                 break
             delay.append(delayi)
-        presetDelay = delay[iAtEnd - 2]
-        delay2 = delay[::-1]
+        presetDelay = delayi
+        range1 = range(1, iAtEnd - 1)
+        range2 = range(iAtEnd - 1, 2 + steps - iAtEnd)
+        range3 = range((-iAtEnd) + 2, 0)
 
-        if presetDelay < delay2[0]:
-            presetDelay = delay2[0]
-        for i in range(1, iAtEnd - 1):
+        for i in range1:
             step_pin.value(1)
             step_pin.value(0)
             sleep_us(delay[i])
-        for _ in range(iAtEnd - 1, 2 + steps - iAtEnd):
+        for _ in range2:
             step_pin.value(1)
             step_pin.value(0)
             sleep_us(presetDelay)
-        for i in range(1, 1 + steps - (2 + steps - iAtEnd)):
+        for i in range3:
             step_pin.value(1)
             step_pin.value(0)
-            sleep_us(delay2[i])
+            sleep_us(delay[-i])
         turnTime = (((ticks_ms() - startTurnTime) / 1000) - TACCEL_DELAY) / degreeval
 
     def straightETA(cm_dist, speed):
