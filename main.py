@@ -159,18 +159,18 @@ if True:  # define all functions
                         pass
         starttime2 = ticks_ms()
         for i in range1:
-            step_pin.value(1)
-            step_pin.value(0)
+            stepPin1.value(1)
+            stepPin1.value(0)
             stepcount += 1
             sleep_us(delay[i])
         for _ in range2:
-            step_pin.value(1)
-            step_pin.value(0)
+            stepPin1.value(1)
+            stepPin1.value(0)
             stepcount += 1
             sleep_us(presetDelay)
         for i in range3:
-            step_pin.value(1)
-            step_pin.value(0)
+            stepPin1.value(1)
+            stepPin1.value(0)
             stepcount += 1
             sleep_us(delay[-i])
         endtime2 = ticks_ms()
@@ -389,16 +389,16 @@ if True:  # define all functions
         range3 = range((-iAtEnd) + 2, 0)
 
         for i in range1:
-            step_pin.value(1)
-            step_pin.value(0)
+            stepPin1.value(1)
+            stepPin1.value(0)
             sleep_us(delay[i])
         for _ in range2:
-            step_pin.value(1)
-            step_pin.value(0)
+            stepPin1.value(1)
+            stepPin1.value(0)
             sleep_us(presetDelay)
         for i in range3:
-            step_pin.value(1)
-            step_pin.value(0)
+            stepPin1.value(1)
+            stepPin1.value(0)
             sleep_us(delay[-i])
         turnTime = (((ticks_ms() - startTurnTime) / 1000) - TACCEL_DELAY) / degreeval
 
@@ -528,7 +528,8 @@ turnTime = 0.0035
 TACCEL_DELAY = 0.35
 CALCS_CONSTANT = round(1020000/STRAIGHTSTEPS,1)
 led = Pin("LED", Pin.OUT)
-step_pin = Pin(14, Pin.OUT)
+stepPin1 = Pin(14, Pin.OUT)
+stepPin2 = Pin(7, Pin.OUT)
 dirPin1 = Pin(11, Pin.OUT)
 dirPin2 = Pin(15, Pin.OUT)
 Pin(23, Pin.OUT).high()  # Switch PSU to PWM from PSM for better ADC
@@ -719,9 +720,9 @@ try:
     enPin1.low()
 
     for _ in range(1, 10):
-        step_pin.value(1)
+        stepPin1.value(1)
         sleep_us(25)
-        step_pin.value(0)
+        stepPin1.value(0)
         sleep_us(25)
     sleep(0.17)
     printlcd("Motors Enabled")
