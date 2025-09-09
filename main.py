@@ -16,7 +16,7 @@ import tcs34725
 # initialize variables to defaults if they dont exist
 SILENT = False
 TARGETTIME = 60
-TURNSPEEDDEFAULT = 80
+TURNSPEEDDEFAULT = 110
 MAXSTRAIGHTSPEED = 200
 turnsteps = 14.1
 TCS_IMPORT = True
@@ -25,7 +25,7 @@ from rv import *  # robot vars
 # DO NOT EDIT THESE DURING COMPETITION
 STARTTIMEOFFSET = 0  # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
 STRAIGHTSTEPS = 90.783
-TACCEL = 4.6
+TACCEL = 4.95
 MINSTRAIGHTSPEED = 3
 SLOWSPEED = 50
 BACKWARDSMAXSPEED = MAXSTRAIGHTSPEED
@@ -160,17 +160,23 @@ if True:  # define all functions
         starttime2 = ticks_ms()
         for i in range1:
             stepPin1.value(1)
+            stepPin2.value(1)
             stepPin1.value(0)
+            stepPin2.value(0)
             stepcount += 1
             sleep_us(delay[i])
         for _ in range2:
             stepPin1.value(1)
+            stepPin2.value(1)
             stepPin1.value(0)
+            stepPin2.value(0)
             stepcount += 1
             sleep_us(presetDelay)
         for i in range3:
             stepPin1.value(1)
+            stepPin2.value(1)
             stepPin1.value(0)
+            stepPin2.value(0)
             stepcount += 1
             sleep_us(delay[-i])
         endtime2 = ticks_ms()
@@ -360,17 +366,16 @@ if True:  # define all functions
             display.show()
         except:
             pass
-
+        dirback(dirPin1)
+        dirfront(dirPin2)
         if degreeval < 0:
-            dirfront(dirPin1)
-            dirfront(dirPin2)
             turn_steps = turnsteps
-            degreeval = -degreeval
         else:
-            dirback(dirPin1)
-            dirback(dirPin2)
-            turn_steps = turnsteps * 1  # use the same steps for both directions
-        steps = round(degreeval * turn_steps)
+            try:
+                turn_steps = rturnsteps
+            except:
+                turn_steps = turnsteps
+        steps = abs(round(degreeval * turn_steps))
 
         delay = []
         iAtEnd = int(steps * .496)
@@ -383,24 +388,42 @@ if True:  # define all functions
                 iAtEnd = i
                 break
             delay.append(delayi)
+        try:
+            display.text('ACCEL%: ' + str(int((100 * iAtEnd) / (steps / 2))), 0, 45, 1)
+            display.show()
+        except:
+            pass
         presetDelay = delayi
         range1 = range(1, iAtEnd - 1)
         range2 = range(iAtEnd - 1, 2 + steps - iAtEnd)
         range3 = range((-iAtEnd) + 2, 0)
-
-        for i in range1:
-            stepPin1.value(1)
-            stepPin1.value(0)
-            sleep_us(delay[i])
-        for _ in range2:
-            stepPin1.value(1)
-            stepPin1.value(0)
-            sleep_us(presetDelay)
-        for i in range3:
-            stepPin1.value(1)
-            stepPin1.value(0)
-            sleep_us(delay[-i])
-        turnTime = (((ticks_ms() - startTurnTime) / 1000) - TACCEL_DELAY) / degreeval
+        if degreeval > 0:
+            for i in range1:
+                stepPin1.value(1)
+                stepPin1.value(0)
+                sleep_us(delay[i])
+            for _ in range2:
+                stepPin1.value(1)
+                stepPin1.value(0)
+                sleep_us(presetDelay)
+            for i in range3:
+                stepPin1.value(1)
+                stepPin1.value(0)
+                sleep_us(delay[-i])
+        else:
+            for i in range1:
+                stepPin2.value(1)
+                stepPin2.value(0)
+                sleep_us(delay[i])
+            for _ in range2:
+                stepPin2.value(1)
+                stepPin2.value(0)
+                sleep_us(presetDelay)
+            for i in range3:
+                stepPin2.value(1)
+                stepPin2.value(0)
+                sleep_us(delay[-i])
+        turnTime = (((ticks_ms() - startTurnTime) / 1000) - TACCEL_DELAY) / abs(degreeval)
 
     def straightETA(cm_dist, speed):
         return cm_dist / speed + 0.5 + 0.0055 * (speed + 30)
