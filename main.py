@@ -18,7 +18,8 @@ SILENT = False
 TARGETTIME = 60
 TURNSPEEDDEFAULT = 80
 MAXSTRAIGHTSPEED = 200
-turnsteps = 14.1
+lturnsteps = 13.65
+rturnsteps = 13.55
 TCS_IMPORT = True
 from rv import *  # robot vars
 
@@ -364,12 +365,12 @@ if True:  # define all functions
         if degreeval < 0:
             dirfront(dirPin1)
             dirfront(dirPin2)
-            turn_steps = turnsteps
+            turn_steps = lturnsteps
             degreeval = -degreeval
         else:
             dirback(dirPin1)
             dirback(dirPin2)
-            turn_steps = turnsteps * 1  # use the same steps for both directions
+            turn_steps = rturnsteps  # use the same steps for both directions
         steps = round(degreeval * turn_steps)
 
         delay = []
