@@ -31,7 +31,7 @@ MINSTRAIGHTSPEED = 3
 SLOWSPEED = 50
 BACKWARDSMAXSPEED = MAXSTRAIGHTSPEED
 TMC_UART_EN = True
-CURRENTMA = 725  # combined current for both motors
+CURRENTMA = 825  # combined current for both motors
 ENDING_LED_PERIOD = 0.75  # how long before finish to turn off led at end
 
 from rv import *  # robot vars
