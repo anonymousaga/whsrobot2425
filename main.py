@@ -29,6 +29,7 @@ STRAIGHTSTEPS = 90.783
 TACCEL = 4.6
 MINSTRAIGHTSPEED = 3
 SLOWSPEED = 50
+SLOWTURNSPEED = 25
 BACKWARDSMAXSPEED = MAXSTRAIGHTSPEED
 TMC_UART_EN = True
 CURRENTMA = 825  # combined current for both motors
@@ -347,7 +348,7 @@ if True:  # define all functions
         last_turnangle = degreeval
         last_tiltangle = 0  # reset tilt angle after turn
         if slow == True:
-            turnSpeed = SLOWSPEED
+            turnSpeed = SLOWTURNSPEED
         else:
             turnSpeed = TURNSPEEDDEFAULT
         print("\nTURN")
@@ -384,6 +385,13 @@ if True:  # define all functions
                 iAtEnd = i
                 break
             delay.append(delayi)
+
+        # ACCEL% for turns too
+        try:
+            display.text('ACCEL%: ' + str(int((100 * iAtEnd) / (steps / 2))), 0, 45, 1)
+            display.show()
+        except:
+            pass
         presetDelay = delayi
         range1 = range(1, iAtEnd - 1)
         range2 = range(iAtEnd - 1, 2 + steps - iAtEnd)
