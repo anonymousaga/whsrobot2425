@@ -5,7 +5,7 @@ A compact MicroPython project to control a two-stepper robot (maze-solving) usin
 ## Summary
 
 - Controls stepper motors via GPIO and optional TMC2209 UART driver.
-- Reads two TCS34725 color sensors for line/dowel detection and corrections.
+- Reads two TCS34725 color sensors for line detection and corrections.
 - Uses an SSD1306 I2C OLED for status and a small buzzer/speaker for beeps.
 
 ## Quick start
