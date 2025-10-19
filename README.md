@@ -19,7 +19,7 @@ A compact MicroPython project to control a two-stepper robot (maze-solving) usin
 
 - `main.py` — Main robot control program (movement, sensor reading, command parsing).
 - `rv.py` — Example command list and configuration used by `main.py`.
-- `TMC_2209_StepperDriver.py` and `TMC_2209_uart.py` — Optional TMC2209 UART control / helper classes.
+- `TMC_2209_StepperDriver.py` and `TMC_2209_uart.py` are optional TMC2209 UART control / helper classes.
 - `tcs34725.py` — Driver for TCS34725 color sensors.
 - `ssd1306.py` — SSD1306 OLED driver (I2C).
 
