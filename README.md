@@ -1,6 +1,6 @@
 # Robot Pico — Competition runner for Raspberry Pi Pico 2
 
-A compact MicroPython project to control a two-stepper robot (line-follow/dowel tasks) using a Raspberry Pi Pico.
+A compact MicroPython project to control a two-stepper robot (maze-solving) using a Raspberry Pi Pico.
 
 ## Summary
 
