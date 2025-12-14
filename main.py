@@ -27,9 +27,9 @@ from rv import *  # robot vars
 STARTTIMEOFFSET = 0  # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
 STRAIGHTSTEPS = 90.783
 TACCEL = 4.6
+TACCELSLOW = 3.8
 MINSTRAIGHTSPEED = 3
-SLOWSPEED = 50
-SLOWTURNSPEED = 25
+SLOWACCEL = 4.5
 BACKWARDSMAXSPEED = MAXSTRAIGHTSPEED
 TMC_UART_EN = True
 CURRENTMA = 825  # combined current for both motors
@@ -96,10 +96,11 @@ if True:  # define all functions
         AdjustSpeedTimeRealTime()  # timing function
         if cm < 0 and straightSpeed > BACKWARDSMAXSPEED:
             straightSpeed = BACKWARDSMAXSPEED
-        if slow == True and straightSpeed > SLOWSPEED:
-            straightSpeed = SLOWSPEED
+        if slow == True:
+            saccel = SLOWACCEL
+        else:
+            saccel = calcAccel(straightSpeed)
         print("\nSTRAIGHT")
-        saccel = calcAccel(straightSpeed)
         print(f'CM: {cm:.0f}, SPEED: {straightSpeed:.0f}, SACCEL: {saccel}')
         try:
             display.fill(0)
@@ -347,10 +348,11 @@ if True:  # define all functions
         degreeval += last_tiltangle
         last_turnangle = degreeval
         last_tiltangle = 0  # reset tilt angle after turn
+        turnSpeed = TURNSPEEDDEFAULT
         if slow == True:
-            turnSpeed = SLOWTURNSPEED
+            taccelreal = TACCELSLOW
         else:
-            turnSpeed = TURNSPEEDDEFAULT
+            taccelreal = TACCEL
         print("\nTURN")
         print(f'DEGREES: {degreeval:.0f}, SPEED: {turnSpeed:.0f}')
         print("Tilt turn adjust: ", last_tiltangle)
@@ -380,7 +382,7 @@ if True:  # define all functions
         presetDelay = calcS(turnSpeed)
         gc.collect()
         for i in range(1, iAtEndinitial):
-            delayi = calcS(.3 * TACCEL * sqrt(i + 2))
+            delayi = calcS(.3 * taccelreal * sqrt(i + 2))
             if delayi <= presetDelay:
                 iAtEnd = i
                 break
@@ -535,7 +537,7 @@ del command0, command1, command2, command3, command4, command5, command6, comman
 straightSpeed = (MINSTRAIGHTSPEED + MAXSTRAIGHTSPEED) / 2
 turnTime = 0.0035
 TACCEL_DELAY = 0.35
-CALCS_CONSTANT = round(1020000/STRAIGHTSTEPS,1)
+CALCS_CONSTANT = round(1020000 / STRAIGHTSTEPS, 1)
 led = Pin("LED", Pin.OUT)
 stepPin1 = Pin(14, Pin.OUT)
 stepPin2 = Pin(7, Pin.OUT)
