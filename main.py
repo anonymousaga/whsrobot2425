@@ -689,7 +689,7 @@ try:
             tmc.setInternalRSense(False)
             tmc.setIScaleAnalog(False)
             tmc.setCurrent(CURRENTMA, Vref=2.1)
-            tmc.setSpreadCycle(False)
+            tmc.setSpreadCycle(True)
             tmc.setDirection_reg(False)
         except Exception as e:
             printlcd("TMC UART FAILED")
