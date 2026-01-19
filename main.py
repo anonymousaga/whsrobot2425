@@ -97,10 +97,9 @@ if True:  # define all functions
         AdjustSpeedTimeRealTime()  # timing function
         if cm < 0 and straightSpeed > BACKWARDSMAXSPEED:
             straightSpeed = BACKWARDSMAXSPEED
-        if slow == True:
+        saccel = calcAccel(straightSpeed)
+        if (slow == True) and (saccel > SLOWACCEL):
             saccel = SLOWACCEL
-        else:
-            saccel = calcAccel(straightSpeed)
         print("\nSTRAIGHT")
         print(f'CM: {cm:.0f}, SPEED: {straightSpeed:.0f}, SACCEL: {saccel}')
         try:
