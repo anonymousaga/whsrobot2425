@@ -26,9 +26,8 @@ from rv import *  # robot vars
 STARTTIMEOFFSET = 0  # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
 STRAIGHTSTEPS = 90.783
 TACCEL = 4.6
-TACCELSLOW = 3.6
 TURNSPEEDDEFAULT = 80
-TURNSPEEDSLOW = 20
+TURNSPEEDSLOW = 22
 MINSTRAIGHTSPEED = 3
 SLOWACCEL = 4.5
 BACKWARDSMAXSPEED = MAXSTRAIGHTSPEED
@@ -349,11 +348,10 @@ if True:  # define all functions
         last_turnangle = degreeval
         last_tiltangle = 0  # reset tilt angle after turn
         if slow == True:
-            taccelreal = TACCELSLOW
             turnSpeed = TURNSPEEDSLOW
         else:
-            taccelreal = TACCEL
             turnSpeed = TURNSPEEDDEFAULT
+        taccelreal = TACCEL
         print("\nTURN")
         print(f'DEGREES: {degreeval:.0f}, SPEED: {turnSpeed:.0f}, ACCEL: {taccelreal}')
         print("Tilt turn adjust: ", last_tiltangle)
