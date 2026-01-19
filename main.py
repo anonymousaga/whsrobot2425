@@ -16,7 +16,6 @@ import tcs34725
 # initialize variables to defaults if they dont exist
 SILENT = False
 TARGETTIME = 60
-TURNSPEEDDEFAULT = 80
 MAXSTRAIGHTSPEED = 200
 lturnsteps = 13.65
 rturnsteps = 13.55
@@ -27,7 +26,9 @@ from rv import *  # robot vars
 STARTTIMEOFFSET = 0  # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
 STRAIGHTSTEPS = 90.783
 TACCEL = 4.6
-TACCELSLOW = 3.8
+TACCELSLOW = 3.6
+TURNSPEEDDEFAULT = 80
+TURNSPEEDSLOW = 20
 MINSTRAIGHTSPEED = 3
 SLOWACCEL = 4.5
 BACKWARDSMAXSPEED = MAXSTRAIGHTSPEED
@@ -348,13 +349,14 @@ if True:  # define all functions
         degreeval += last_tiltangle
         last_turnangle = degreeval
         last_tiltangle = 0  # reset tilt angle after turn
-        turnSpeed = TURNSPEEDDEFAULT
         if slow == True:
             taccelreal = TACCELSLOW
+            turnSpeed = TURNSPEEDSLOW
         else:
             taccelreal = TACCEL
+            turnSpeed = TURNSPEEDDEFAULT
         print("\nTURN")
-        print(f'DEGREES: {degreeval:.0f}, SPEED: {turnSpeed:.0f}')
+        print(f'DEGREES: {degreeval:.0f}, SPEED: {turnSpeed:.0f}, ACCEL: {taccelreal}')
         print("Tilt turn adjust: ", last_tiltangle)
         try:
             display.fill(0)
