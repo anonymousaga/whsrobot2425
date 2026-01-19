@@ -526,6 +526,28 @@ if True:  # define all functions
             pass
         return voltage, undervolt
 
+    # set motor current via TMC UART
+    def setcurrent(currentvalue):
+            # set TMC current to run current again after waiting for button press
+        if TMC_UART_EN == True:
+            try:
+                tmc.setCurrent(currentvalue, Vref=2.1)
+            except Exception as e:
+                printlcd("TMC UART FAILED")
+                try:
+                    display.text('NOT RUNNING!!!', 0, 30, 1)
+                    display.show()
+                except:
+                    pass
+                buzzer.duty_u16(1000)
+                while True:
+                    led.on()
+                    buzzer.freq(400)
+                    sleep(0.3)
+                    led.off()
+                    buzzer.freq(800)
+                    sleep(0.15)
+
 
 # _thread.start_new_thread(th_func, ())
 print("")
@@ -689,7 +711,7 @@ try:
             tmc.setMicrosteppingResolution(16)
             tmc.setInternalRSense(False)
             tmc.setIScaleAnalog(False)
-            tmc.setCurrent(CURRENTMA, Vref=2.1)
+            tmc.setCurrent(350, Vref=2.1) # STARTING HOLD CURRENT
             tmc.setSpreadCycle(True)
             tmc.setDirection_reg(False)
         except Exception as e:
@@ -758,6 +780,8 @@ try:
     while button.value() == 0:
         sleep_us(2)   # wait until button is fully released
 
+    # set motor current to run current from hold current
+    setcurrent(CURRENTMA)
     del countled
     # motor time offset, in nanoseconds
     startTime = ticks_ms() + STARTTIMEOFFSET * (1000)
@@ -790,10 +814,10 @@ try:
     buzzer.freq(750)
     buzzer.duty_u16(1000)
     led.off()
-    enPin1.high()
     sleep(0.4)
     buzzer.duty_u16(0)
     sleep(0.2)
+    setcurrent(75) # ENDING HOLD CURRENT
     if SILENT == False:
         import random
         tones = {
