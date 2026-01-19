@@ -936,6 +936,10 @@ try:
                 sleep(0.15)
             bequiet()
         playsong(song)
+    else:
+        print("Silent Mode, no song played.")
+        sleep(5) # delay to ensure robot fully stops before exiting
+    enPin1.high() # turn off motors
     while True:
         lcd_voltage()
         sleep(.75)
