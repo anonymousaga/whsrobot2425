@@ -6,11 +6,11 @@ SILENT = False
 TARGETTIME = 60
 
 # SPEED VARS in cm/s
-MAXSTRAIGHTSPEED = 200  # 100 #200
+MAXSTRAIGHTSPEED = 250  # 100 #200
 
 # TURN VARS
-lturnsteps = 13.829
-rturnsteps = 13.829
+lturnsteps = 14.172
+rturnsteps = 13.965
 TCS_IMPORT = False
 
 commands = """

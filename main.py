@@ -24,7 +24,7 @@ from rv import *  # robot vars
 
 # DO NOT EDIT THESE DURING COMPETITION
 STARTTIMEOFFSET = 0  # in seconds;  Negative means to decrease the amount of time taken, positive means to increase the amount of time taken
-STRAIGHTSTEPS = 90.783
+STRAIGHTSTEPS = 92.636
 TACCEL = 4.6
 TURNSPEEDDEFAULT = 80
 TURNSPEEDSLOW = 22
@@ -72,9 +72,9 @@ if True:  # define all functions
     def calcAccel(speed):
         # linear calibration, each min & max correlates to the other
         speedMIN = 20
-        speedMAX = 100
+        speedMAX = 125
         accelMIN = 4.2
-        accelMAX = 5.8
+        accelMAX = 6.1
 
         accel = accelMIN + ((speed - speedMIN) * ((accelMAX - accelMIN) / (speedMAX - speedMIN)))
         if accel < accelMIN:
